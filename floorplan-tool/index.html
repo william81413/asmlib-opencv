@@ -1,0 +1,737 @@
+<title>Obergeschoss Grundriss-Studie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F6F4F0; --panel:#FFFFFF; --sunk:#EFECE6; --line:#DCD7CE; --hair:#EAE6DF;
+  --ink:#1A1815; --muted:#726B62; --faint:#9C948A;
+  --bestand:#B4AFA8; --bestand-fill:#C6C1BA; --neu:#DE2A1E; --abbruch:#DBBE00;
+  --room:#F1EEE8; --room-hi:#FBE9E7; --locked:#E4E0D8;
+  --ok:#2C7A57; --warn:#B5811A; --bad:#BE3324;
+  --ok-bg:#E4F0EA; --warn-bg:#F7EEDA; --bad-bg:#F8E5E2;
+  --shadow:0 1px 2px rgba(26,24,21,.06),0 8px 24px -12px rgba(26,24,21,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#14161A; --panel:#1C1F25; --sunk:#23272E; --line:#31363F; --hair:#262B32;
+    --ink:#ECE9E3; --muted:#9AA0A9; --faint:#6E7681;
+    --bestand:#6C7178; --bestand-fill:#4A4F56; --neu:#FF5747; --abbruch:#E0C22B;
+    --room:#212630; --room-hi:#33262A; --locked:#1A1D22;
+    --ok:#5BC08D; --warn:#E0AE4A; --bad:#F0705F;
+    --ok-bg:#15291F; --warn-bg:#2C2415; --bad-bg:#301A17;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14161A; --panel:#1C1F25; --sunk:#23272E; --line:#31363F; --hair:#262B32;
+  --ink:#ECE9E3; --muted:#9AA0A9; --faint:#6E7681;
+  --bestand:#6C7178; --bestand-fill:#4A4F56; --neu:#FF5747; --abbruch:#E0C22B;
+  --room:#212630; --room-hi:#33262A; --locked:#1A1D22;
+  --ok:#5BC08D; --warn:#E0AE4A; --bad:#F0705F;
+  --ok-bg:#15291F; --warn-bg:#2C2415; --bad-bg:#301A17;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:"Archivo","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;margin:0;text-wrap:balance}
+
+/* ---- title block header, after a German Schriftfeld ---- */
+header{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:stretch;
+  border-bottom:1px solid var(--line); background:var(--panel);
+}
+.tb{display:flex; gap:0; flex-wrap:wrap}
+.tb-cell{padding:10px 18px; border-right:1px solid var(--hair); min-width:0}
+.tb-cell:last-child{border-right:0}
+.tb-k{font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:600}
+.tb-v{font-size:13px; font-weight:500; white-space:nowrap}
+h1{font-size:17px; font-weight:700; letter-spacing:-.01em}
+.sub{font-size:11.5px; color:var(--muted)}
+.hdr-actions{display:flex; align-items:center; gap:8px; padding:0 16px; border-left:1px solid var(--hair)}
+
+/* ---- app shell ---- */
+main{display:grid; grid-template-columns:minmax(0,1fr) 396px; height:calc(100% - 62px)}
+@media (max-width:1080px){ main{grid-template-columns:1fr; height:auto} #stage{height:70vh} }
+#stage{position:relative; background:var(--paper); overflow:hidden; display:flex}
+#plan{flex:1; touch-action:none; user-select:none}
+.rail{border-left:1px solid var(--line); background:var(--panel); overflow-y:auto; display:flex; flex-direction:column}
+
+section.card{border-bottom:1px solid var(--hair); padding:16px 18px}
+.card h2{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:600; margin-bottom:12px; display:flex; justify-content:space-between; align-items:baseline}
+
+/* ---- score ---- */
+.score-top{display:flex; align-items:baseline; gap:10px; margin-bottom:12px}
+.score-val{font-family:"Archivo",sans-serif; font-size:44px; font-weight:700; line-height:.9; letter-spacing:-.03em}
+.score-max{font-size:13px; color:var(--faint)}
+.score-tag{margin-left:auto; font-size:11px; font-weight:600; padding:3px 9px; border-radius:2px}
+.bars{display:flex; flex-direction:column; gap:7px}
+.bar-row{display:grid; grid-template-columns:104px 1fr 32px; gap:9px; align-items:center; font-size:11.5px}
+.bar-track{height:5px; background:var(--sunk); border-radius:3px; overflow:hidden}
+.bar-fill{height:100%; background:var(--ink); border-radius:3px; transition:width .18s ease}
+.bar-row .v{text-align:right; color:var(--muted); font-size:11px}
+
+/* ---- sliders ---- */
+.ctl{display:grid; gap:5px; margin-bottom:15px}
+.ctl:last-child{margin-bottom:0}
+.ctl-head{display:flex; align-items:baseline; gap:8px}
+.ctl-name{font-size:12.5px; font-weight:600}
+.ctl-note{font-size:10.5px; color:var(--faint)}
+.ctl-val{margin-left:auto; font-size:12.5px; font-weight:600}
+.ctl-delta{font-size:11px; margin-left:6px}
+input[type=range]{width:100%; accent-color:var(--neu); height:18px; margin:0}
+.pill{display:inline-block; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; padding:1px 6px; border-radius:2px; border:1px solid currentColor}
+.p-bearing{color:var(--neu)} .p-wet{color:var(--warn)} .p-light{color:var(--muted)}
+
+/* ---- table ---- */
+table{width:100%; border-collapse:collapse; font-size:12.5px}
+th{text-align:right; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); font-weight:600; padding-bottom:6px; border-bottom:1px solid var(--hair)}
+th:first-child{text-align:left}
+td{padding:5px 0; border-bottom:1px solid var(--hair); text-align:right}
+td:first-child{text-align:left}
+tr:last-child td{border-bottom:0}
+tfoot td{font-weight:600; border-top:1px solid var(--line); border-bottom:0; padding-top:8px}
+.up{color:var(--ok)} .down{color:var(--bad)} .zero{color:var(--faint)}
+
+/* ---- findings ---- */
+.finding{display:grid; grid-template-columns:auto 1fr; gap:9px; padding:8px 10px; border-radius:3px; margin-bottom:6px; font-size:12px; line-height:1.45}
+.finding:last-child{margin-bottom:0}
+.f-bad{background:var(--bad-bg)} .f-warn{background:var(--warn-bg)} .f-ok{background:var(--ok-bg)}
+.f-dot{width:7px; height:7px; border-radius:50%; margin-top:6px}
+.f-bad .f-dot{background:var(--bad)} .f-warn .f-dot{background:var(--warn)} .f-ok .f-dot{background:var(--ok)}
+.f-room{font-weight:600}
+.f-fix{color:var(--muted); font-size:11.5px}
+
+/* ---- buttons ---- */
+button{font:inherit; font-size:12px; font-weight:500; padding:6px 11px; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:3px; cursor:pointer; transition:background .12s,border-color .12s}
+button:hover{background:var(--sunk)}
+button:focus-visible{outline:2px solid var(--neu); outline-offset:2px}
+button.on{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
+.btn-row{display:flex; gap:6px; flex-wrap:wrap}
+.presets{display:grid; grid-template-columns:1fr 1fr; gap:6px}
+.preset{text-align:left; padding:9px 11px; line-height:1.35}
+.preset b{display:block; font-size:12px; font-weight:600}
+.preset span{font-size:10.5px; color:var(--muted)}
+
+/* ---- cost ---- */
+.cost-tot{display:flex; align-items:baseline; gap:8px; margin-bottom:10px}
+.cost-num{font-family:"Archivo",sans-serif; font-size:26px; font-weight:700; letter-spacing:-.02em}
+.cost-lines{font-size:12px; display:flex; flex-direction:column; gap:4px}
+.cost-line{display:flex; justify-content:space-between; gap:12px; color:var(--muted)}
+
+/* ---- legend + svg ---- */
+.legend{position:absolute; left:16px; bottom:14px; display:flex; gap:14px; font-size:10.5px; color:var(--muted); background:color-mix(in srgb,var(--paper) 88%,transparent); padding:6px 10px; border-radius:3px}
+.lg{display:flex; align-items:center; gap:5px}
+.sw{width:14px; height:7px; border-radius:1px}
+.hint{position:absolute; right:16px; top:14px; font-size:10.5px; color:var(--faint); text-align:right; line-height:1.6}
+.grab{cursor:ew-resize} .grab-v{cursor:ns-resize}
+.note{font-size:11.5px; color:var(--muted); line-height:1.55}
+.note code{font-family:"IBM Plex Mono",monospace; font-size:11px; background:var(--sunk); padding:1px 4px; border-radius:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="tb">
+    <div class="tb-cell">
+      <h1>Obergeschoss · 格局研究</h1>
+      <div class="sub">既有二戶改三戶 · 上層住戶 WG 2 · 自住情境</div>
+    </div>
+    <div class="tb-cell"><div class="tb-k">Bestand</div><div class="tb-v num">9,70 × 10,80 m</div></div>
+    <div class="tb-cell"><div class="tb-k">原案 NGF</div><div class="tb-v num">96,00 m²</div></div>
+    <div class="tb-cell"><div class="tb-k">現況淨面積</div><div class="tb-v num" id="hdr-area">–</div></div>
+  </div>
+  <div class="hdr-actions">
+    <button id="btn-reset">回到原案</button>
+    <button id="btn-export">匯出 JSON</button>
+  </div>
+</header>
+
+<main>
+  <div id="stage">
+    <svg id="plan" role="img" aria-label="Obergeschoss 平面圖，可拖曳牆體調整格局"></svg>
+    <div class="hint">拖曳 <b>紅色控制線</b> 移動牆體<br>或用右側滑桿微調</div>
+    <div class="legend">
+      <div class="lg"><span class="sw" style="background:var(--bestand-fill)"></span>Bestand 既有</div>
+      <div class="lg"><span class="sw" style="background:var(--neu)"></span>Neu 新建</div>
+      <div class="lg"><span class="sw" style="background:var(--locked);border:1px solid var(--line)"></span>不可調整</div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <section class="card">
+      <h2>格局評分 <span style="text-transform:none;letter-spacing:0">自住權重</span></h2>
+      <div class="score-top">
+        <span class="score-val num" id="score">–</span><span class="score-max">/ 100</span>
+        <span class="score-tag" id="score-tag"></span>
+      </div>
+      <div class="bars" id="score-bars"></div>
+    </section>
+
+    <section class="card">
+      <h2>預設方案</h2>
+      <div class="presets" id="presets"></div>
+    </section>
+
+    <section class="card">
+      <h2>可動尺寸</h2>
+      <div id="controls"></div>
+    </section>
+
+    <section class="card">
+      <h2>面積 <span style="text-transform:none;letter-spacing:0">m²</span></h2>
+      <table>
+        <thead><tr><th>空間</th><th>原案</th><th>現在</th><th>Δ</th></tr></thead>
+        <tbody id="area-body"></tbody>
+        <tfoot id="area-foot"></tfoot>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>規則檢核</h2>
+      <div id="findings"></div>
+    </section>
+
+    <section class="card">
+      <h2>施工成本量級</h2>
+      <div class="cost-tot"><span class="cost-num num" id="cost">–</span><span class="note">粗估，非報價</span></div>
+      <div class="cost-lines" id="cost-lines"></div>
+    </section>
+
+    <section class="card">
+      <h2>方案存檔</h2>
+      <div class="btn-row" style="margin-bottom:8px">
+        <button id="btn-save">存成方案</button>
+        <button id="btn-clear" class="ghost">清空</button>
+      </div>
+      <div id="saved" class="cost-lines"></div>
+    </section>
+
+    <section class="card">
+      <h2>資料來源</h2>
+      <p class="note">幾何由建築師的 <code>Obergeschoss.pdf</code>（2026-08-03 版）向量圖層自動抽取（牆體依填色分類 Bestand / Neu / Abbruch），並與圖上尺寸鏈逐段核對：下方尺寸鏈 <code>24+3,56⁵+17⁵+3,98+24+2,31⁵+24 = 10,75⁵</code> 七段全數吻合。<br><br>本工具顯示的是<b>幾何淨面積</b>；建築師標註的 NGF 在 Schlafen / Kind / Wohnen / Bad 各少 0,55–0,90 m²（合計約 3 m²），原因待與建築師確認（可能為管道間或牆面內襯扣除）。</p>
+    </section>
+  </div>
+</main>
+
+<script>
+"use strict";
+/* ============================================================
+   MODEL — axes are wall centre lines, in metres.
+   Origin = north-west corner of the extension (Erweiterung).
+   Every room face is derived from an axis ± half its wall thickness,
+   so moving one axis updates every room that touches it.
+   ============================================================ */
+const AX = {
+  // vertical walls (x)
+  xwext:{d:'x', p:0.185,  t:0.370, kind:'exterior', lock:1, name:'擴建西外牆'},
+  xw:   {d:'x', p:0.120,  t:0.240, kind:'exterior', lock:1, name:'既有西外牆'},
+  xbw:  {d:'x', p:4.030,  t:0.190, kind:'partition',lock:0, name:'陽台／暖房隔間', note:'11,5 cm 輕隔間'},
+  xmid: {d:'x', p:3.895,  t:0.175, kind:'bearing',  lock:0, name:'中央承重牆', note:'17,5 cm ─ 需過樑'},
+  xst:  {d:'x', p:5.100,  t:0.115, kind:'partition',lock:0, name:'儲藏室隔間', note:'新增輕隔間', opt:'storage'},
+  xe2:  {d:'x', p:8.080,  t:0.240, kind:'exterior', lock:1, name:'南段東外牆'},
+  xeext:{d:'x', p:9.515,  t:0.370, kind:'exterior', lock:1, name:'擴建東外牆'},
+  xe:   {d:'x', p:9.580,  t:0.240, kind:'exterior', lock:1, name:'既有東外牆'},
+  xtrh: {d:'x', p:10.630, t:0.240, kind:'exterior', lock:1, name:'樓梯間東牆'},
+  // horizontal walls (y)
+  ynext:{d:'y', p:0.0575, t:0.115, kind:'exterior', lock:1, name:'陽台女兒牆'},
+  yexts:{d:'y', p:3.120,  t:0.240, kind:'exterior', lock:1, name:'擴建南牆'},
+  yn:   {d:'y', p:3.370,  t:0.240, kind:'exterior', lock:1, name:'既有北外牆'},
+  y1:   {d:'y', p:8.635,  t:0.115, kind:'partition',lock:0, name:'臥室／起居 分界', note:'11,5 cm 輕隔間'},
+  y2:   {d:'y', p:10.850, t:0.115, kind:'partition',lock:0, name:'玄關／衛浴 分界', note:'11,5 cm ─ 動到排水', wet:1},
+  ystep:{d:'y', p:9.930,  t:0.240, kind:'exterior', lock:1, name:'東側退縮線'},
+  ys:   {d:'y', p:13.925, t:0.240, kind:'exterior', lock:1, name:'既有南外牆'},
+};
+const BASE = Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p]));
+let storage = false;
+
+const f = (id,s)=> AX[id].p + (s==='+' ? AX[id].t/2 : -AX[id].t/2);
+
+/* rooms: faces reference [axis, sign]; sign '+' = outer side of that wall */
+const ROOMS = [
+  {id:'balkon', name:'Balkon', de:'Balkon 1/2', kind:'balcony', factor:.5,
+   x:[['xwext','+'],['xbw','-']], y:[['ynext','+'],['yexts','-']], ngf:5.13},
+  {id:'winter', name:'Wintergarten', de:'Wintergarten', kind:'sunroom',
+   x:[['xbw','+'],['xeext','-']], y:[['ynext','+'],['yexts','-']], ngf:14.99},
+  {id:'schlafen', name:'主臥 Schlafen', de:'Schlafen', kind:'bed_main',
+   x:[['xw','+'],['xmid','-']], y:[['yn','+'],['y1','-']], ngf:17.60},
+  {id:'kind', name:'兒童房 Kind', de:'Kind', kind:'bed_child',
+   x:[['xw','+'],['xmid','-']], y:[['y1','+'],['ys','-']], ngf:17.40},
+  {id:'wohnen', name:'起居／廚房／餐廳', de:'Wohnen/Kochen/Essen', kind:'living',
+   x:[['xmid','+'],['xe','-']], y:[['yn','+'],['y1','-']], ngf:27.06},
+  {id:'diele', name:'玄關 Diele', de:'Diele', kind:'hall',
+   x:[['xmid','+'],['xe2','-']], y:[['y1','+'],['y2','-']], ngf:8.32},
+  {id:'bad', name:'衛浴 Bad/WC', de:'Bad/WC', kind:'bath',
+   x:[['xst','+'],['xe2','-']], y:[['y2','+'],['ys','-']], ngf:10.63, alt:{x:[['xmid','+'],['xe2','-']]}},
+  {id:'abstell', name:'儲藏 Abstellraum', de:'Abstellraum', kind:'store', only:'storage',
+   x:[['xmid','+'],['xst','-']], y:[['y2','+'],['ys','-']], ngf:0},
+];
+
+function geom(){
+  const out=[];
+  for(const r of ROOMS){
+    if(r.only==='storage' && !storage) continue;
+    const xr = (r.id==='bad' && !storage) ? r.alt.x : r.x;
+    const x0=f(...xr[0]), x1=f(...xr[1]), y0=f(...r.y[0]), y1=f(...r.y[1]);
+    const w=x1-x0, d=y1-y0;
+    out.push({...r, x0,x1,y0,y1, w, d, area:w*d, short:Math.min(w,d), long:Math.max(w,d)});
+  }
+  return out;
+}
+
+/* ============================================================
+   RULES — owner-occupied weighting. Every threshold is a clear
+   dimension in metres and is stated in the finding text.
+   ============================================================ */
+function fitsBed(w,d,bw,bl,side1,side2,foot){
+  const ok=(W,D)=> W >= bw+side1+side2 && D >= bl+foot;
+  return ok(w,d)||ok(d,w);
+}
+const RULES = {
+  bed_main:(r)=>{
+    const F=[];
+    if(r.area<12) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，主臥低於 12 m²`,'把中牆往東移可補回']);
+    if(r.short<2.80) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 2,80 m`,'雙人床 1,80 + 兩側通行 0,75/0,55 放不下']);
+    else if(r.short<3.10) F.push(['warn',`淨寬 ${r.short.toFixed(2)} m 偏緊`,'床兩側只剩最小通行，建議 ≥ 3,10 m']);
+    if(!fitsBed(r.w,r.d,1.80,2.00,0.75,0.55,0.70)) F.push(['bad','1,80×2,00 雙人床放不進去','含床尾 0,70 m 通行']);
+    else if(r.long<4.20) F.push(['warn','衣櫃牆面不足','2,00 m 衣櫃 + 0,60 開門淨距會卡到床尾']);
+    return F;
+  },
+  bed_child:(r)=>{
+    const F=[];
+    if(r.area<10) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，兒童房低於 10 m²`,'']);
+    if(r.short<2.40) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 2,40 m`,'單人床 0,90 + 書桌 0,70 + 通行 0,80']);
+    if(!fitsBed(r.w,r.d,0.90,2.00,0.70,0.10,0.70)) F.push(['bad','單人床 + 書桌配置不成立','']);
+    if(r.area>16 && r.short>3.2) F.push(['ok',`${r.area.toFixed(1)} m²，日後可一分為二`,'寬度足以再切一道輕隔間']);
+    return F;
+  },
+  living:(r)=>{
+    const F=[];
+    if(r.area<22) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，起居+廚房+餐廳低於 22 m²`,'三合一空間會擁擠']);
+    if(r.short<3.60) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 3,60 m`,'廚具 0,60 + 走道 1,20 + 餐桌 1,60 排不下']);
+    else if(r.short<4.00) F.push(['warn',`淨寬 ${r.short.toFixed(2)} m`,'廚房走道會壓到 1,20 m 下限']);
+    if(r.area>=26 && r.short>=4.4) F.push(['ok','可容納中島或六人餐桌','']);
+    return F;
+  },
+  hall:(r)=>{
+    const F=[];
+    if(r.short<1.10) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 1,10 m`,'兩人交會與搬家具的最低值']);
+    else if(r.short<1.30) F.push(['warn',`淨寬 ${r.short.toFixed(2)} m`,'自住建議 ≥ 1,30 m，才放得下鞋櫃']);
+    if(r.area>7.5) F.push(['warn',`${r.area.toFixed(1)} m² 交通面積偏大`,'這是最值得回收的面積']);
+    return F;
+  },
+  bath:(r)=>{
+    const F=[];
+    if(r.area<5.5) F.push(['bad',`面積 ${r.area.toFixed(1)} m² 過小`,'浴缸+雙洗手台+馬桶需 ≥ 5,5 m²']);
+    if(r.short<1.75) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 1,75 m`,'浴缸 1,70 靠牆放不下']);
+    if(r.area>9.5) F.push(['warn',`${r.area.toFixed(1)} m²，以 96 m² 的戶型算偏大`,'切出儲藏室或還給臥室']);
+    if(r.area>=6.5 && r.area<=9.0) F.push(['ok','面積合宜，可放浴缸＋淋浴','']);
+    return F;
+  },
+  store:(r)=>{
+    const F=[];
+    if(r.area<1.5) F.push(['bad',`${r.area.toFixed(1)} m² 太小，不成儲藏室`,'']);
+    if(r.short<0.90) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m，門進不去`,'']);
+    if(r.area>=2.0 && r.short>=1.00) F.push(['ok',`${r.area.toFixed(1)} m² 可放洗衣機＋層架`,'']);
+    return F;
+  },
+  sunroom:(r)=>{
+    const F=[];
+    if(r.d<2.40) F.push(['warn',`進深 ${r.d.toFixed(2)} m`,'低於 2,40 m 就只剩走廊感']);
+    return F;
+  },
+  balcony:(r)=>{
+    const F=[];
+    if(r.d<1.50) F.push(['bad',`進深 ${r.d.toFixed(2)} m < 1,50 m`,'放不下桌椅']);
+    if(r.area<6) F.push(['warn',`實際 ${r.area.toFixed(1)} m²（計入面積 ${(r.area/2).toFixed(1)}）`,'四人用餐需 ≥ 6 m²']);
+    return F;
+  },
+};
+function check(rooms){
+  const F=[];
+  for(const r of rooms){ const fn=RULES[r.kind]; if(!fn) continue;
+    for(const [lv,msg,fix] of fn(r)) F.push({lv,room:r.name,msg,fix}); }
+  const order={bad:0,warn:1,ok:2};
+  return F.sort((a,b)=>order[a.lv]-order[b.lv]);
+}
+
+/* ---- cost model: order-of-magnitude, EUR ---- */
+const COST = {
+  partition:{fix:0, per:380, label:'輕隔間拆改'},
+  bearing:{fix:6500, per:900, label:'承重牆 + 過樑'},
+  wet:{fix:2500, per:450, label:'排水管路改道'},
+  newpart:{fix:1200, per:380, label:'新增儲藏隔間'},
+};
+function costs(){
+  const L=[];
+  for(const [id,a] of Object.entries(AX)){
+    if(a.lock) continue;
+    if(a.opt==='storage'){ if(storage) L.push({label:COST.newpart.label, eur:COST.newpart.fix + COST.newpart.per*2.9}); continue; }
+    const dm=Math.abs(a.p-BASE[id]); if(dm<0.005) continue;
+    const run = a.d==='x' ? 10.3 : 5.5;                     // wall length affected, m
+    const c = a.kind==='bearing' ? COST.bearing : COST.partition;
+    L.push({label:`${a.name} 移動 ${(dm*100).toFixed(0)} cm`, eur:c.fix + c.per*run});
+    if(a.wet) L.push({label:COST.wet.label, eur:COST.wet.fix + COST.wet.per*run});
+  }
+  return L;
+}
+
+/* ---- score: transparent weights, tune them in the code ---- */
+function score(rooms,F){
+  const get=id=>rooms.find(r=>r.id===id);
+  const cl=(v,lo,hi)=>Math.max(0,Math.min(1,(v-lo)/(hi-lo)));
+  const live=get('wohnen'), sl=get('schlafen'), kd=get('kind'), dl=get('diele'), bd=get('bad'), st=get('abstell');
+  const prog = (cl(sl.area,11,15)+cl(kd.area,9,13)+cl(live.area,20,28)+cl(bd.area,5.5,7.5))/4;
+  const furn = 1 - Math.min(1, F.filter(x=>x.lv==='bad').length/5);
+  const circ = 1 - cl(dl.area/(rooms.filter(r=>!['balkon','winter'].includes(r.id)).reduce((s,r)=>s+r.area,0)), 0.06, 0.12);
+  const store = st ? cl(st.area,1.2,3.2) : 0;
+  const money = 1 - Math.min(1, costs().reduce((s,c)=>s+c.eur,0)/20000);
+  const parts=[['面積達標',prog,.30],['家具可行',furn,.25],['交通效率',circ,.15],['收納',store,.10],['成本',money,.20]];
+  return {total:Math.round(parts.reduce((s,[,v,w])=>s+v*w,0)*100), parts};
+}
+
+/* ============================================================
+   RENDER — SVG in centimetres, drawn the way a Bauplan is drawn.
+   ============================================================ */
+const SVG='http://www.w3.org/2000/svg';
+const el=(n,a={})=>{const e=document.createElementNS(SVG,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const M=100; // m -> cm
+const PLAN_W=10.755, PLAN_H=14.05, PAD=1.45;
+
+/* wall runs: [axis, fromAxis, fromSign, toAxis, toSign] */
+const WALLS=[
+  ['xwext','ynext','-','yexts','+','neu'], ['xeext','ynext','-','yexts','+','neu'],
+  ['ynext','xwext','-','xbw','+','neu'],   ['yexts','xwext','-','xeext','+','neu'],
+  ['xbw','ynext','-','yexts','+','neu'],
+  ['xw','yn','-','ys','+','bestand'],      ['yn','xw','-','xe','+','bestand'],
+  ['xe','yn','-','ystep','+','bestand'],   ['ystep','xe2','-','xe','+','bestand'],
+  ['xe2','y1','-','ys','+','bestand'],  ['ys','xw','-','xtrh','+','bestand'],
+  ['xtrh','ystep','-','ys','+','neu'],
+  ['xmid','yn','-','ys','+','bestand'],
+  ['y1','xw','-','xmid','-','bestand'],    ['y1','xmid','+','xe','+','bestand'],
+  ['y2','xmid','+','xe2','+','bestand'],
+  ['xst','y2','-','ys','+','neu','storage'],
+];
+/* openings punched out of a wall run: [axis, centre along the run (m), width] */
+const OPEN=[
+  ['xmid', 7.49, .89, 'door'], ['xmid', 9.94, .88, 'door'],
+  ['y2',   4.90, .88, 'door'], ['y1',   4.91, 1.86, 'open'],
+  ['xe2', 10.30, .96, 'entry'],
+  ['xw',   5.90, 1.30, 'win'], ['xw', 11.55, 1.30, 'win'],
+  ['ys',   2.10, 1.30, 'win'], ['ys', 5.90, 1.10, 'win'],
+  ['xe',   6.60, 1.55, 'win'],
+];
+function openingsOn(ax){ return OPEN.filter(o=>o[0]===ax); }
+
+function draw(){
+  const svg=document.getElementById('plan');
+  svg.textContent='';
+  const vb=[-PAD*M, -PAD*M, (PLAN_W+PAD*2)*M, (PLAN_H+PAD*1.5)*M];
+  svg.setAttribute('viewBox', vb.join(' '));
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  const defs=el('defs');
+  defs.innerHTML=`<pattern id="hatch" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="9" stroke="var(--bestand)" stroke-width="2.2"/></pattern>`;
+  svg.appendChild(defs);
+  const g=el('g'); svg.appendChild(g);
+  const rooms=geom();
+
+  // --- locked stair core ---
+  const trh=el('rect',{x:f('xe2','+')*M, y:f('ystep','+')*M,
+    width:(f('xtrh','-')-f('xe2','+'))*M, height:(f('ys','-')-f('ystep','+'))*M,
+    fill:'url(#hatch)', opacity:.5});
+  g.appendChild(trh);
+  const trhb=el('rect',{x:f('xe2','+')*M, y:f('ystep','+')*M,
+    width:(f('xtrh','-')-f('xe2','+'))*M, height:(f('ys','-')-f('ystep','+'))*M,
+    fill:'none', stroke:'var(--neu)', 'stroke-width':2, 'stroke-dasharray':'10 6'});
+  g.appendChild(trhb);
+  const tl=el('text',{x:(f('xe2','+')+.15)*M, y:(f('ystep','+')+.7)*M, fill:'var(--muted)','font-size':30,'font-weight':600});
+  tl.textContent='TRH'; g.appendChild(tl);
+  const tl2=el('text',{x:(f('xe2','+')+.15)*M, y:(f('ystep','+')+1.15)*M, fill:'var(--faint)','font-size':22});
+  tl2.textContent='公共樓梯'; g.appendChild(tl2);
+  const pd=el('text',{x:(f('xe2','+')+.62)*M, y:(f('y1','+')+.72)*M, 'text-anchor':'middle', fill:'var(--faint)','font-size':21});
+  pd.textContent='Podest'; g.appendChild(pd);
+
+  // --- rooms ---
+  for(const r of rooms){
+    const hi = r.kind==='bath'||r.kind==='store';
+    g.appendChild(el('rect',{x:r.x0*M, y:r.y0*M, width:r.w*M, height:r.d*M,
+      fill: hi?'var(--room-hi)':'var(--room)'}));
+  }
+  // --- walls (with openings punched) ---
+  for(const w of WALLS){
+    const [ax,fa,fs,ta,ts,kindC,opt]=w;
+    if(opt==='storage' && !storage) continue;
+    const a=AX[ax], p=a.p, t=a.t;
+    const s0=f(fa,fs), s1=f(ta,ts);
+    const segs=[[s0,s1]];
+    for(const o of openingsOn(ax)){
+      const c=o[1], hw=o[2]/2;
+      for(let i=segs.length-1;i>=0;i--){
+        const [b,e]=segs[i];
+        if(c-hw>b && c+hw<e){ segs.splice(i,1,[b,c-hw],[c+hw,e]); }
+      }
+    }
+    const fill = kindC==='neu' ? 'var(--neu)' : 'var(--bestand-fill)';
+    const strk = kindC==='neu' ? 'var(--neu)' : 'var(--bestand)';
+    for(const [b,e] of segs){
+      if(e-b<0.005) continue;
+      const R = a.d==='x'
+        ? {x:(p-t/2)*M, y:b*M, width:t*M, height:(e-b)*M}
+        : {x:b*M, y:(p-t/2)*M, width:(e-b)*M, height:t*M};
+      g.appendChild(el('rect',{...R, fill, stroke:strk, 'stroke-width':1.5}));
+    }
+    // opening jambs + door swing
+    for(const o of openingsOn(ax)){
+      if(o[1]<s0||o[1]>s1) continue;
+      const c=o[1], hw=o[2]/2, kind=o[3];
+      if(kind==='win'){
+        const R = a.d==='x' ? {x:(p-t/6)*M,y:(c-hw)*M,width:(t/3)*M,height:o[2]*M}
+                            : {x:(c-hw)*M,y:(p-t/6)*M,width:o[2]*M,height:(t/3)*M};
+        g.appendChild(el('rect',{...R, fill:'var(--panel)', stroke:'var(--bestand)','stroke-width':1.5}));
+      } else if(kind!=='open'){
+        const d=el('path',{fill:'none', stroke:kind==='entry'?'var(--neu)':'var(--bestand)', 'stroke-width':1.6, opacity:.8});
+        const r0=o[2]*M;
+        if(a.d==='x') d.setAttribute('d',`M ${p*M} ${(c-hw)*M} a ${r0} ${r0} 0 0 1 ${r0} ${r0}`);
+        else          d.setAttribute('d',`M ${(c-hw)*M} ${p*M} a ${r0} ${r0} 0 0 0 ${r0} ${r0}`);
+        g.appendChild(d);
+      }
+    }
+  }
+  // --- room labels ---
+  for(const r of rooms){
+    const cx=(r.x0+r.x1)/2*M, cy=(r.y0+r.y1)/2*M;
+    const narrow = r.w<1.60;
+    const rot = narrow ? `rotate(-90 ${cx} ${cy})` : null;
+    const t1=el('text',{x:cx,y:cy-10,'text-anchor':'middle','font-size':26,'font-weight':600,fill:'var(--ink)'});
+    if(rot) t1.setAttribute('transform',rot);
+    t1.textContent=r.de; g.appendChild(t1);
+    const shown = r.factor ? r.area*r.factor : r.area;
+    const t2=el('text',{x:cx,y:cy+22,'text-anchor':'middle','font-size':25,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'});
+    if(rot) t2.setAttribute('transform',rot);
+    t2.textContent=`${shown.toFixed(2).replace('.',',')} m²${r.factor?' ½':''}`; g.appendChild(t2);
+    if(!narrow){
+      const t3=el('text',{x:cx,y:cy+50,'text-anchor':'middle','font-size':20,fill:'var(--faint)','font-family':'IBM Plex Mono, monospace'});
+      t3.textContent=`${r.w.toFixed(2).replace('.',',')} × ${r.d.toFixed(2).replace('.',',')}`; g.appendChild(t3);
+    }
+    if(narrow){ t1.setAttribute('font-size',21); t2.setAttribute('font-size',20); }
+  }
+  // --- dimension chains ---
+  chain(g,'x', PLAN_H+0.55, ['xmid','xe2']);
+  chain(g,'y', -0.55, ['y1','y2']);
+  // --- draggable axis handles ---
+  let hi=0, hj=0;
+  for(const [id,a] of Object.entries(AX)){
+    if(a.lock) continue;
+    if(a.opt==='storage' && !storage) continue;
+    const off = a.d==='x' ? -30-42*(hi++%2) : -30-42*(hj++%2);
+    const grp=el('g',{class:a.d==='x'?'grab':'grab-v','data-ax':id});
+    const L = a.d==='x'
+      ? {x1:a.p*M,y1:off,x2:a.p*M,y2:(PLAN_H+.2)*M}
+      : {x1:off,y1:a.p*M,x2:(PLAN_W+.2)*M,y2:a.p*M};
+    grp.appendChild(el('line',{...L, stroke:'var(--neu)','stroke-width':2,'stroke-dasharray':'14 8', opacity:.55}));
+    grp.appendChild(el('line',{...L, stroke:'transparent','stroke-width':34}));
+    const hx = a.d==='x' ? a.p*M : off, hy = a.d==='x' ? off : a.p*M;
+    grp.appendChild(el('circle',{cx:hx, cy:hy, r:15, fill:'var(--neu)'}));
+    grp.appendChild(el('circle',{cx:hx, cy:hy, r:6, fill:'var(--panel)'}));
+    g.appendChild(grp);
+  }
+  wireDrag(svg);
+}
+function chain(g,dir,at,ids){
+  const pts = dir==='x'
+    ? [f('xw','-'), ...ids.map(i=>AX[i].p), f('xtrh','+')]
+    : [f('yn','-'), ...ids.map(i=>AX[i].p), f('ys','+')];
+  const y0=at*M;
+  const line = dir==='x' ? {x1:pts[0]*M,y1:y0,x2:pts.at(-1)*M,y2:y0} : {x1:y0,y1:pts[0]*M,x2:y0,y2:pts.at(-1)*M};
+  g.appendChild(el('line',{...line, stroke:'var(--faint)','stroke-width':1.5}));
+  for(const p of pts){
+    const tk = dir==='x'
+      ? {x1:p*M-9,y1:y0+9,x2:p*M+9,y2:y0-9} : {x1:y0+9,y1:p*M-9,x2:y0-9,y2:p*M+9};
+    g.appendChild(el('line',{...tk, stroke:'var(--faint)','stroke-width':1.8}));
+  }
+  for(let i=0;i<pts.length-1;i++){
+    const mid=(pts[i]+pts[i+1])/2, len=pts[i+1]-pts[i];
+    const t=el('text',{'text-anchor':'middle','font-size':24,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'});
+    if(dir==='x'){ t.setAttribute('x',mid*M); t.setAttribute('y',y0-14); }
+    else { t.setAttribute('x',y0-10); t.setAttribute('y',mid*M);
+           t.setAttribute('transform',`rotate(-90 ${y0-10} ${mid*M})`); }
+    t.textContent=len.toFixed(2).replace('.',','); g.appendChild(t);
+  }
+}
+
+/* ---- drag ---- */
+let drag=null;
+function wireDrag(svg){
+  svg.querySelectorAll('[data-ax]').forEach(grp=>{
+    grp.addEventListener('pointerdown',e=>{ drag=grp.dataset.ax; e.preventDefault(); });
+  });
+}
+(function(){
+  const stage=document.getElementById('stage');
+  stage.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    const svg=document.getElementById('plan');
+    const pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
+    const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+    setAxis(drag, (AX[drag].d==='x'?p.x:p.y)/M);
+  });
+  const end=()=>{ drag=null; };
+  stage.addEventListener('pointerup',end);
+  stage.addEventListener('pointerleave',end);
+  stage.addEventListener('pointercancel',end);
+})();
+/* limits keep every touching room above its hard minimum */
+const LIMIT={ xmid:[3.10,5.30], xbw:[2.80,6.60], y1:[7.40,10.10], y2:[9.90,12.10], xst:[4.60,6.40] };
+function setAxis(id,v){
+  const [lo,hi]=LIMIT[id]||[0,99];
+  AX[id].p = Math.round(Math.max(lo,Math.min(hi,v))*200)/200;   // snap to 0,5 cm
+  reconcile(id);
+  update();
+}
+/* Rooms that share a wall cannot both shrink below their minimum.
+   When one axis moves, push its dependants instead of letting a room vanish. */
+const MIN_STORE=1.00, MIN_BATH=1.80;
+function reconcile(moved){
+  if(!storage) return;
+  const west=()=> f('xmid','+')+MIN_STORE+AX.xst.t/2;
+  const east=()=> f('xe2','-')-MIN_BATH-AX.xst.t/2;
+  if(AX.xst.p < west()) AX.xst.p = +west().toFixed(3);
+  if(AX.xst.p > east()) AX.xst.p = +east().toFixed(3);
+  if(AX.xst.p < west() && moved==='xmid')            // no room left for both
+    AX.xmid.p = +(AX.xst.p - MIN_STORE - AX.xst.t/2 - AX.xmid.t/2).toFixed(3);
+}
+
+/* ============================================================
+   UI
+   ============================================================ */
+function fmt(n,d=2){ return n.toFixed(d).replace('.',','); }
+
+function update(){
+  draw();
+  const rooms=geom(), F=check(rooms), S=score(rooms,F);
+  const inside = rooms.filter(r=>!['balkon'].includes(r.id)).reduce((s,r)=>s+r.area,0);
+  document.getElementById('hdr-area').textContent = fmt(inside+geom().find(r=>r.id==='balkon').area*0.5,2)+' m²';
+
+  // score
+  document.getElementById('score').textContent=S.total;
+  const tag=document.getElementById('score-tag');
+  const t = S.total>=85?['很好','ok']:S.total>=70?['可用','warn']:['待改善','bad'];
+  tag.textContent=t[0];
+  tag.style.background=`var(--${t[1]}-bg)`; tag.style.color=`var(--${t[1]})`;
+  document.getElementById('score-bars').innerHTML = S.parts.map(([n,v,w])=>
+    `<div class="bar-row"><span>${n}</span><span class="bar-track"><span class="bar-fill" style="width:${(v*100).toFixed(0)}%"></span></span><span class="v num">${(v*100).toFixed(0)}</span></div>`).join('');
+
+  // controls
+  const C=document.getElementById('controls');
+  const mk=(id)=>{
+    const a=AX[id]; const [lo,hi]=LIMIT[id]||[0,99];
+    const d=(a.p-BASE[id])*100;
+    const pill = a.kind==='bearing'?'<span class="pill p-bearing">承重</span>':a.wet?'<span class="pill p-wet">濕區</span>':'<span class="pill p-light">輕隔間</span>';
+    const dcls = Math.abs(d)<0.4?'zero':d>0?'up':'down';
+    return `<div class="ctl">
+      <div class="ctl-head"><span class="ctl-name">${a.name}</span>${pill}
+        <span class="ctl-val num">${fmt(a.p)} m</span>
+        <span class="ctl-delta num ${dcls}">${d>0.4?'+':''}${Math.abs(d)<0.4?'±0':fmt(d,1)} cm</span></div>
+      <input type="range" min="${lo}" max="${hi}" step="0.005" value="${a.p}" data-ax="${id}">
+      <div class="ctl-note">${a.note||''}</div></div>`;
+  };
+  C.innerHTML = ['xmid','y1','y2','xbw'].map(mk).join('')
+    + `<div class="ctl"><div class="ctl-head"><span class="ctl-name">切出儲藏室</span>
+        <span class="ctl-val"><button id="tg-store" class="${storage?'on':''}">${storage?'已啟用':'關閉'}</button></span></div>
+        <div class="ctl-note">從 11,5 m² 的衛浴西側切一間 Abstellraum ─ 這戶目前完全沒有收納空間</div></div>`
+    + (storage?mk('xst'):'');
+  C.querySelectorAll('input[type=range]').forEach(i=>{
+    i.addEventListener('input',e=>setAxis(e.target.dataset.ax, +e.target.value));
+  });
+  document.getElementById('tg-store').onclick=()=>{storage=!storage; update();};
+
+  // areas
+  const B=document.getElementById('area-body');
+  B.innerHTML = rooms.map(r=>{
+    const now = r.factor? r.area*r.factor : r.area;
+    const base = r.ngf||0;
+    const d = base? now-base : null;
+    const cls = d===null?'zero':Math.abs(d)<0.05?'zero':d>0?'up':'down';
+    return `<tr><td>${r.name}</td><td class="num" style="color:var(--faint)">${base?fmt(base):'–'}</td>
+      <td class="num">${fmt(now)}</td>
+      <td class="num ${cls}">${d===null?'新增':(d>0?'+':'')+fmt(d)}</td></tr>`;
+  }).join('');
+  const sumNow = rooms.reduce((s,r)=>s+(r.factor?r.area*r.factor:r.area),0);
+  const sumBase = rooms.reduce((s,r)=>s+(r.ngf||0),0);
+  document.getElementById('area-foot').innerHTML =
+    `<tr><td>合計（含陽台 ½）</td><td class="num" style="color:var(--faint)">${fmt(sumBase)}</td>
+     <td class="num">${fmt(sumNow)}</td><td class="num ${sumNow-sumBase>0?'up':'down'}">${(sumNow-sumBase>0?'+':'')+fmt(sumNow-sumBase)}</td></tr>`;
+
+  // findings
+  document.getElementById('findings').innerHTML = F.length? F.map(x=>
+    `<div class="finding f-${x.lv}"><span class="f-dot"></span><span>
+      <span class="f-room">${x.room}</span> · ${x.msg}${x.fix?`<br><span class="f-fix">${x.fix}</span>`:''}</span></div>`).join('')
+    : `<div class="finding f-ok"><span class="f-dot"></span><span>沒有違反的規則</span></div>`;
+
+  // cost
+  const L=costs(), tot=L.reduce((s,c)=>s+c.eur,0);
+  document.getElementById('cost').textContent = tot? '€'+(tot/1000).toFixed(1)+'k' : '€0';
+  document.getElementById('cost-lines').innerHTML = L.length? L.map(c=>
+    `<div class="cost-line"><span>${c.label}</span><span class="num">€${(c.eur/1000).toFixed(1)}k</span></div>`).join('')
+    : `<div class="cost-line"><span>未改動任何牆</span><span class="num">€0</span></div>`;
+}
+
+/* ---- presets ---- */
+const PRESETS=[
+  {n:'A 原案', s:'建築師 2026-08-03 版', set:{}, store:false},
+  {n:'B 臥室優先', s:'中牆東移 45 cm', set:{xmid:4.345}, store:false},
+  {n:'C 收納版', s:'切儲藏室 + 玄關縮小', set:{y2:10.55}, store:true},
+  {n:'D 起居優先', s:'中牆西移 35 cm', set:{xmid:3.545, y1:8.935}, store:false},
+];
+function applyPreset(p){
+  for(const k in BASE) AX[k].p=BASE[k];
+  for(const k in p.set) AX[k].p=p.set[k];
+  storage=p.store; update();
+}
+document.getElementById('presets').innerHTML = PRESETS.map((p,i)=>
+  `<button class="preset" data-i="${i}"><b>${p.n}</b><span>${p.s}</span></button>`).join('');
+document.getElementById('presets').onclick=e=>{
+  const b=e.target.closest('[data-i]'); if(b) applyPreset(PRESETS[+b.dataset.i]);
+};
+document.getElementById('btn-reset').onclick=()=>applyPreset(PRESETS[0]);
+document.getElementById('btn-export').onclick=()=>{
+  const data={axes:Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])), storage,
+              rooms:geom().map(r=>({id:r.id,de:r.de,w:+r.w.toFixed(3),d:+r.d.toFixed(3),area:+r.area.toFixed(2)}))};
+  navigator.clipboard?.writeText(JSON.stringify(data,null,2));
+  const b=document.getElementById('btn-export'); b.textContent='已複製到剪貼簿';
+  setTimeout(()=>b.textContent='匯出 JSON',1600);
+};
+
+/* ---- saved variants ---- */
+const KEY='og-varianten';
+const load=()=>{ try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return []} };
+function renderSaved(){
+  const V=load();
+  document.getElementById('saved').innerHTML = V.length? V.map((v,i)=>
+    `<div class="cost-line"><button class="ghost" data-load="${i}" style="padding:2px 4px">${v.name}</button>
+     <span class="num">${v.score} 分 · €${(v.cost/1000).toFixed(1)}k</span></div>`).join('')
+    : `<div class="cost-line"><span>還沒有存檔</span></div>`;
+  document.getElementById('saved').querySelectorAll('[data-load]').forEach(b=>{
+    b.onclick=()=>{ const v=load()[+b.dataset.load];
+      for(const k in v.axes) AX[k].p=v.axes[k]; storage=v.storage; update(); };
+  });
+}
+document.getElementById('btn-save').onclick=()=>{
+  const rooms=geom(), F=check(rooms), S=score(rooms,F);
+  const V=load();
+  V.push({name:'方案 '+String.fromCharCode(69+V.length), score:S.total,
+          cost:costs().reduce((s,c)=>s+c.eur,0),
+          axes:Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])), storage});
+  localStorage.setItem(KEY,JSON.stringify(V)); renderSaved();
+};
+document.getElementById('btn-clear').onclick=()=>{ localStorage.removeItem(KEY); renderSaved(); };
+
+update(); renderSaved();
+</script>
