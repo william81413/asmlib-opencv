@@ -160,6 +160,7 @@ button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
     <div class="legend">
       <div class="lg"><span class="sw" style="background:var(--bestand-fill)"></span>Bestand 既有</div>
       <div class="lg"><span class="sw" style="background:var(--neu)"></span>Neu 新建</div>
+      <div class="lg"><span class="sw" style="background:transparent;border:2px dashed var(--abbruch)"></span>Abbruch 拆除</div>
       <div class="lg"><span class="sw" style="background:var(--locked);border:1px solid var(--line)"></span>不可調整</div>
     </div>
   </div>
@@ -232,7 +233,7 @@ const AX = {
   // vertical walls (x)
   xwext:{d:'x', p:0.185,  t:0.370, kind:'exterior', lock:1, name:'擴建西外牆'},
   xw:   {d:'x', p:0.120,  t:0.240, kind:'exterior', lock:1, name:'既有西外牆'},
-  xbw:  {d:'x', p:4.030,  t:0.190, kind:'partition',lock:0, name:'陽台／暖房隔間', note:'11,5 cm 輕隔間'},
+  xbw:  {d:'x', p:4.024,  t:0.208, kind:'partition',lock:0, name:'陽台／暖房隔間', note:'11,5 cm 輕隔間'},
   xmid: {d:'x', p:3.8925,  t:0.175, kind:'bearing',  lock:0, name:'中央承重牆', note:'17,5 cm ─ 需過樑'},
   xst:  {d:'x', p:5.100,  t:0.115, kind:'partition',lock:0, name:'儲藏室隔間', note:'新增輕隔間', opt:'storage'},
   xe2:  {d:'x', p:8.0800,  t:0.240, kind:'exterior', lock:1, name:'南段東外牆'},
@@ -245,9 +246,14 @@ const AX = {
   yn:   {d:'y', p:3.370,  t:0.240, kind:'exterior', lock:1, name:'既有北外牆'},
   y1:   {d:'y', p:8.6375,  t:0.115, kind:'partition',lock:0, name:'臥室／起居 分界', note:'11,5 cm 輕隔間'},
   y2:   {d:'y', p:10.7950+0.0575, t:0.115, kind:'partition',lock:0, name:'玄關／衛浴 分界', note:'11,5 cm ─ 動到排水', wet:1},
-  ystep:{d:'y', p:9.930,  t:0.240, kind:'exterior', lock:1, name:'東側退縮線'},
   ys:   {d:'y', p:13.9300, t:0.240, kind:'exterior', lock:1, name:'既有南外牆'},
 };
+/* Existing masonry shaft against the bearing wall. It cannot be moved, it eats
+   floor area, and it blocks furniture — so it is modelled, not ignored. */
+const CHIMNEY={x0:3.285, y0:8.704, x1:3.793, y1:9.263, name:'既有煙囪'};
+const CHIMNEY_AREA=(CHIMNEY.x1-CHIMNEY.x0)*(CHIMNEY.y1-CHIMNEY.y0);
+const cx0=(CHIMNEY.x0+CHIMNEY.x1)/2, cy0=(CHIMNEY.y0+CHIMNEY.y1)/2;
+
 const BASE = Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p]));
 let storage = false;
 
@@ -280,7 +286,9 @@ function geom(){
     const xr = (r.id==='bad' && !storage) ? r.alt.x : r.x;
     const x0=f(...xr[0]), x1=f(...xr[1]), y0=f(...r.y[0]), y1=f(...r.y[1]);
     const w=x1-x0, d=y1-y0;
-    out.push({...r, x0,x1,y0,y1, w, d, area:w*d, short:Math.min(w,d), long:Math.max(w,d)});
+    const holds = cx0>x0 && cx0<x1 && cy0>y0 && cy0<y1;
+    out.push({...r, x0,x1,y0,y1, w, d, area:w*d-(holds?CHIMNEY_AREA:0), chimney:holds,
+              short:Math.min(w,d), long:Math.max(w,d)});
   }
   return out;
 }
@@ -308,6 +316,8 @@ const RULES = {
     if(r.area<10) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，兒童房低於 10 m²`,'']);
     if(r.short<2.40) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 2,40 m`,'單人床 0,90 + 書桌 0,70 + 通行 0,80']);
     if(!fitsBed(r.w,r.d,0.90,2.00,0.70,0.10,0.70)) F.push(['bad','單人床 + 書桌配置不成立','']);
+    if(r.chimney) F.push(['warn','東北角有既有煙囪 0,51 × 0,56 m',
+      '已從面積扣除 0,28 m²；床頭或衣櫃要避開這支柱子']);
     if(r.area>16 && r.short>3.2) F.push(['ok',`${r.area.toFixed(1)} m²，日後可一分為二`,'寬度足以再切一道輕隔間']);
     return F;
   },
@@ -355,6 +365,11 @@ const RULES = {
 };
 function check(rooms){
   const F=[];
+  const host=rooms.find(r=>r.chimney);
+  if(!host) F.push({lv:'bad',room:'既有煙囪',msg:'中牆移動後煙囪落在牆體或玄關裡',
+    fix:'煙囪是既有磚砌管道，拆不掉也移不動 — 中牆最西只能到 3,88 m（等於幾乎不能西移）'});
+  else if(host.kind!=='bed_child') F.push({lv:'warn',room:'既有煙囪',
+    msg:`煙囪現在落在「${host.name}」`, fix:'原本在兒童房角落，換了位置要重新確認貼牆家具'});
   for(const r of rooms){ const fn=RULES[r.kind]; if(!fn) continue;
     for(const [lv,msg,fix] of fn(r)) F.push({lv,room:r.name,msg,fix}); }
   const order={bad:0,warn:1,ok:2};
@@ -410,9 +425,9 @@ const WALLS=[
   ['ynext','xwext','-','xbw','+','neu'],   ['yexts','xwext','-','xeext','+','neu'],
   ['xbw','ynext','-','yexts','+','neu'],
   ['xw','yn','-','ys','+','bestand'],      ['yn','xw','-','xe','+','bestand'],
-  ['xe','yn','-','ystep','+','bestand'],   ['ystep','xe2','-','xe','+','bestand'],
+  ['xe','yn','-','y1','+','bestand'],
   ['xe2','y1','-','ys','+','bestand'],  ['ys','xw','-','xtrh','+','bestand'],
-  ['xtrh','ystep','-','ys','+','neu'],
+  ['xtrh','y1','-','ys','+','neu'],
   ['xmid','yn','-','ys','+','bestand'],
   ['y1','xw','-','xmid','-','bestand'],    ['y1','xmid','+','xe','+','bestand'],
   ['y2','xmid','+','xe2','+','bestand'],
@@ -420,12 +435,13 @@ const WALLS=[
 ];
 /* openings punched out of a wall run: [axis, centre along the run (m), width] */
 const OPEN=[
-  ['xmid', 7.49, .89, 'door'], ['xmid', 9.94, .88, 'door'],
-  ['y2',   4.90, .88, 'door'], ['y1',   4.91, 1.86, 'open'],
-  ['xe2', 10.30, .96, 'entry'],
-  ['xw',   5.90, 1.30, 'win'], ['xw', 11.55, 1.30, 'win'],
-  ['ys',   2.10, 1.30, 'win'], ['ys', 5.90, 1.10, 'win'],
-  ['xe',   6.60, 1.55, 'win'],
+  ['xmid', 7.487, .885,'door'], ['xmid', 9.938, .885,'door'],   // gaps 7,044-7,929 / 9,495-10,380
+  ['y2',   4.900, .884,'door'], ['y1',   4.911, 1.863,'open'],  // 4,458-5,342 / 3,979-5,842
+  ['xe2',  9.424, 1.007,'entry'],                               // 8,920-9,927  Wohnungstür
+  ['yn',   5.683, 1.740,'open'], ['yexts', 5.683, 1.740,'open'],// 4,813-6,553  to the Wintergarten
+  ['xw',   5.999, 1.998,'win'], ['xw', 11.557, 1.600,'win'],    // 5,000-6,998 / 10,757-12,357
+  ['ys',   2.201, 1.600,'win'], ['ys',  6.050, 1.601,'win'],    // 1,401-3,001 / 5,249-6,850
+  ['xe',   4.560, 1.499,'win'], ['xe',  7.148, 1.596,'win'],    // 3,810-5,309 / 6,350-7,946
 ];
 function openingsOn(ax){ return OPEN.filter(o=>o[0]===ax); }
 
@@ -442,21 +458,22 @@ function draw(){
   const g=el('g'); svg.appendChild(g);
   const rooms=geom();
 
-  // --- locked stair core ---
-  const trh=el('rect',{x:f('xe2','+')*M, y:f('ystep','+')*M,
-    width:(f('xtrh','-')-f('xe2','+'))*M, height:(f('ys','-')-f('ystep','+'))*M,
-    fill:'url(#hatch)', opacity:.5});
-  g.appendChild(trh);
-  const trhb=el('rect',{x:f('xe2','+')*M, y:f('ystep','+')*M,
-    width:(f('xtrh','-')-f('xe2','+'))*M, height:(f('ys','-')-f('ystep','+'))*M,
-    fill:'none', stroke:'var(--neu)', 'stroke-width':2, 'stroke-dasharray':'10 6'});
-  g.appendChild(trhb);
-  const tl=el('text',{x:(f('xe2','+')+.15)*M, y:(f('ystep','+')+.7)*M, fill:'var(--muted)','font-size':30,'font-weight':600});
+  // --- locked stair core: one block from y1 down, outside the apartment ---
+  const TX=f('xe2','+'), TY=f('y1','+'), TW=f('xtrh','-')-TX, TH=f('ys','-')-TY;
+  g.appendChild(el('rect',{x:TX*M, y:TY*M, width:TW*M, height:TH*M, fill:'url(#hatch)', opacity:.5}));
+  g.appendChild(el('rect',{x:TX*M, y:TY*M, width:TW*M, height:TH*M,
+    fill:'none', stroke:'var(--neu)', 'stroke-width':2, 'stroke-dasharray':'10 6'}));
+  // the existing east wall is demolished across the Diele band - that is how the
+  // new stairwell reaches the flat. Drawn on the Abbruch layer, as on the sheet.
+  g.appendChild(el('rect',{x:f('xe','-')*M, y:f('y1','+')*M,
+    width:(f('xe','+')-f('xe','-'))*M, height:(f('y2','-')-f('y1','+'))*M,
+    fill:'none', stroke:'var(--abbruch)','stroke-width':3,'stroke-dasharray':'12 7'}));
+  const tl=el('text',{x:(TX+.16)*M, y:(TY+.62)*M, fill:'var(--muted)','font-size':30,'font-weight':600});
   tl.textContent='TRH'; g.appendChild(tl);
-  const tl2=el('text',{x:(f('xe2','+')+.15)*M, y:(f('ystep','+')+1.15)*M, fill:'var(--faint)','font-size':22});
+  const tl2=el('text',{x:(TX+.16)*M, y:(TY+1.05)*M, fill:'var(--faint)','font-size':22});
   tl2.textContent='公共樓梯'; g.appendChild(tl2);
-  const pd=el('text',{x:(f('xe2','+')+.62)*M, y:(f('y1','+')+.72)*M, 'text-anchor':'middle', fill:'var(--faint)','font-size':21});
-  pd.textContent='Podest'; g.appendChild(pd);
+  const tl3=el('text',{x:(TX+.16)*M, y:(TY+1.45)*M, fill:'var(--faint)','font-size':20});
+  tl3.textContent='不可調整'; g.appendChild(tl3);
 
   // --- rooms ---
   for(const r of rooms){
@@ -464,6 +481,16 @@ function draw(){
     g.appendChild(el('rect',{x:r.x0*M, y:r.y0*M, width:r.w*M, height:r.d*M,
       fill: hi?'var(--room-hi)':'var(--room)'}));
   }
+  // --- Wintergarten glazing (no filled wall on the sheet: it is a glass front) ---
+  for(const dx of [-0.03,0.03]){
+    g.appendChild(el('line',{x1:f('xbw','+')*M, y1:(f('ynext','-')+dx+0.06)*M,
+      x2:f('xeext','-')*M, y2:(f('ynext','-')+dx+0.06)*M,
+      stroke:'var(--neu)','stroke-width':1.6}));
+  }
+  // --- fixed chimney ---
+  g.appendChild(el('rect',{x:CHIMNEY.x0*M, y:CHIMNEY.y0*M,
+    width:(CHIMNEY.x1-CHIMNEY.x0)*M, height:(CHIMNEY.y1-CHIMNEY.y0)*M,
+    fill:'url(#hatch)', stroke:'var(--bestand)','stroke-width':1.5}));
   // --- walls (with openings punched) ---
   for(const w of WALLS){
     const [ax,fa,fs,ta,ts,kindC,opt]=w;
@@ -706,7 +733,9 @@ const PRESETS=[
   {n:'A 原案', s:'建築師 2026-08-03 版', set:{}, store:false},
   {n:'B 臥室優先', s:'中牆東移 45 cm', set:{xmid:4.345}, store:false},
   {n:'C 收納版', s:'切儲藏室 + 玄關縮小', set:{y2:10.55}, store:true},
-  {n:'D 起居優先', s:'中牆西移 35 cm', set:{xmid:3.545, y1:8.935}, store:false},
+  // Neither wall can pass through the chimney (x 3,285-3,793 / y 8,704-9,263):
+  // the bearing wall is stuck, and the partition has to clear it in one jump.
+  {n:'D 起居優先', s:'分界南移 72 cm，越過煙囪', set:{y1:9.360}, store:false},
 ];
 function applyPreset(p){
   for(const k in BASE) AX[k].p=BASE[k];

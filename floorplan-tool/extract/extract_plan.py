@@ -28,6 +28,10 @@ import pymupdf
 
 SCALE = 0.0352778          # metres per PDF point at 1:100 on A3 (25.4/72/1000*100)
 BUILDING = (350, 700, 200, 620)   # page-space window that excludes legend + title block
+# NOTE: do not add a size filter here. An earlier version dropped rects smaller
+# than 7 x 12 pt as "dimension arrow heads" and silently deleted the 24 x 22,9 cm
+# door jamb beside the flat's entrance, which put the whole south-east corner of
+# the model wrong. The arrow heads sit outside BUILDING, so the window is enough.
 
 
 def classify(fill):
@@ -55,9 +59,7 @@ def walls(path):
         r = item["rect"] * rot
         if not (x0 < r.x0 < x1 and y0 < r.y0 < y1):
             continue
-        if r.width < 1.5 or r.height < 1.5:
-            continue
-        if r.width < 7 and r.height < 12:       # dimension arrow heads
+        if r.width < 1.0 or r.height < 1.0:
             continue
         out.append({"kind": kind, "r": [r.x0, r.y0, r.x1, r.y1]})
     ox = min(w["r"][0] for w in out)
