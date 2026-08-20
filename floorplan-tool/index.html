@@ -186,7 +186,7 @@ button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
     </section>
 
     <section class="card">
-      <h2>面積 <span style="text-transform:none;letter-spacing:0">m²</span></h2>
+      <h2>面積 <button id="tg-raw" class="ghost" style="font-size:10px;padding:2px 7px;border:1px solid var(--line);text-transform:none;letter-spacing:0">建築師 NGF</button></h2>
       <table>
         <thead><tr><th>空間</th><th>原案</th><th>現在</th><th>Δ</th></tr></thead>
         <tbody id="area-body"></tbody>
@@ -256,6 +256,7 @@ const cx0=(CHIMNEY.x0+CHIMNEY.x1)/2, cy0=(CHIMNEY.y0+CHIMNEY.y1)/2;
 
 const BASE = Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p]));
 let storage = false;
+let rawMode  = false;   // false = architect's NGF (default), true = raw geometry
 
 const f = (id,s)=> AX[id].p + (s==='+' ? AX[id].t/2 : -AX[id].t/2);
 
@@ -279,7 +280,7 @@ const ROOMS = [
    x:[['xmid','+'],['xst','-']], y:[['y2','+'],['ys','-']], ngf:0},
 ];
 
-function geom(){
+function geom(anchor){
   const out=[];
   for(const r of ROOMS){
     if(r.only==='storage' && !storage) continue;
@@ -287,11 +288,32 @@ function geom(){
     const x0=f(...xr[0]), x1=f(...xr[1]), y0=f(...r.y[0]), y1=f(...r.y[1]);
     const w=x1-x0, d=y1-y0;
     const holds = cx0>x0 && cx0<x1 && cy0>y0 && cy0<y1;
-    out.push({...r, x0,x1,y0,y1, w, d, area:w*d-(holds?CHIMNEY_AREA:0), chimney:holds,
+    const raw=w*d-(holds?CHIMNEY_AREA:0);
+    out.push({...r, x0,x1,y0,y1, w, d, area:raw, raw, chimney:holds,
               short:Math.min(w,d), long:Math.max(w,d)});
+  }
+  /* The sheet prints an NGF for every room. That printed number is the anchor:
+     with nothing moved the tool shows exactly what the PDF shows. Moving a wall
+     applies the geometric change to it, so the unexplained 3 m2 between the
+     architect's NGF and the raw geometry never leaks into what you read. */
+  if(anchor!==false){
+    for(const r of out){
+      const k=r.factor||1, b=BASE_AREA[r.id];
+      if(r.ngf!=null && b!=null) r.area = r.raw + (r.ngf/k - b);
+    }
   }
   return out;
 }
+/* raw geometry of the untouched plan, measured once */
+const BASE_AREA=(()=>{
+  const keep=Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])), ks=storage;
+  for(const k in BASE) AX[k].p=BASE[k];
+  storage=false;
+  const m=Object.fromEntries(geom(false).map(r=>[r.id,r.raw]));
+  for(const k in keep) AX[k].p=keep[k];
+  storage=ks;
+  return m;
+})();
 
 /* ============================================================
    RULES — owner-occupied weighting. Every threshold is a clear
@@ -468,11 +490,11 @@ function draw(){
   g.appendChild(el('rect',{x:f('xe','-')*M, y:f('y1','+')*M,
     width:(f('xe','+')-f('xe','-'))*M, height:(f('y2','-')-f('y1','+'))*M,
     fill:'none', stroke:'var(--abbruch)','stroke-width':3,'stroke-dasharray':'12 7'}));
-  const tl=el('text',{x:(TX+.16)*M, y:(TY+.62)*M, fill:'var(--muted)','font-size':30,'font-weight':600});
+  const tl=el('text',{x:(TX+.34)*M, y:(TY+.62)*M, fill:'var(--muted)','font-size':30,'font-weight':600});
   tl.textContent='TRH'; g.appendChild(tl);
-  const tl2=el('text',{x:(TX+.16)*M, y:(TY+1.05)*M, fill:'var(--faint)','font-size':22});
+  const tl2=el('text',{x:(TX+.34)*M, y:(TY+1.05)*M, fill:'var(--faint)','font-size':22});
   tl2.textContent='公共樓梯'; g.appendChild(tl2);
-  const tl3=el('text',{x:(TX+.16)*M, y:(TY+1.45)*M, fill:'var(--faint)','font-size':20});
+  const tl3=el('text',{x:(TX+.34)*M, y:(TY+1.45)*M, fill:'var(--faint)','font-size':20});
   tl3.textContent='不可調整'; g.appendChild(tl3);
 
   // --- rooms ---
@@ -525,7 +547,11 @@ function draw(){
       } else if(kind!=='open'){
         const d=el('path',{fill:'none', stroke:kind==='entry'?'var(--neu)':'var(--bestand)', 'stroke-width':1.6, opacity:.8});
         const r0=o[2]*M;
-        if(a.d==='x') d.setAttribute('d',`M ${p*M} ${(c-hw)*M} a ${r0} ${r0} 0 0 1 ${r0} ${r0}`);
+        // the flat's front door swings into the hall, i.e. west, not into the stairwell
+        const west = kind==='entry';
+        if(a.d==='x') d.setAttribute('d', west
+          ? `M ${p*M} ${(c-hw)*M} a ${r0} ${r0} 0 0 0 ${-r0} ${r0}`
+          : `M ${p*M} ${(c-hw)*M} a ${r0} ${r0} 0 0 1 ${r0} ${r0}`);
         else          d.setAttribute('d',`M ${(c-hw)*M} ${p*M} a ${r0} ${r0} 0 0 0 ${r0} ${r0}`);
         g.appendChild(d);
       }
@@ -539,7 +565,7 @@ function draw(){
     const t1=el('text',{x:cx,y:cy-10,'text-anchor':'middle','font-size':26,'font-weight':600,fill:'var(--ink)'});
     if(rot) t1.setAttribute('transform',rot);
     t1.textContent=r.de; g.appendChild(t1);
-    const shown = r.factor ? r.area*r.factor : r.area;
+    const shown = (r.factor||1)*(rawMode? r.raw : r.area);
     const t2=el('text',{x:cx,y:cy+22,'text-anchor':'middle','font-size':25,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'});
     if(rot) t2.setAttribute('transform',rot);
     t2.textContent=`${shown.toFixed(2).replace('.',',')} m²${r.factor?' ½':''}`; g.appendChild(t2);
@@ -661,8 +687,8 @@ function fmt(n,d=2){ return n.toFixed(d).replace('.',','); }
 function update(){
   draw();
   const rooms=geom(), F=check(rooms), S=score(rooms,F);
-  const inside = rooms.filter(r=>!['balkon'].includes(r.id)).reduce((s,r)=>s+r.area,0);
-  document.getElementById('hdr-area').textContent = fmt(inside+geom().find(r=>r.id==='balkon').area*0.5,2)+' m²';
+  const inside = rooms.filter(r=>r.id!=='balkon').reduce((s,r)=>s+r.area*(r.factor||1),0);
+  document.getElementById('hdr-area').textContent = fmt(inside,2)+' m²';
 
   // score
   document.getElementById('score').textContent=S.total;
@@ -696,11 +722,15 @@ function update(){
     i.addEventListener('input',e=>setAxis(e.target.dataset.ax, +e.target.value));
   });
   document.getElementById('tg-store').onclick=()=>{storage=!storage; update();};
+  const tr=document.getElementById('tg-raw');
+  tr.textContent = rawMode? '純幾何面積' : '建築師 NGF';
+  tr.title = rawMode? '點一下切回圖面標註的 NGF' : '點一下改看未校正的幾何面積';
+  tr.onclick=()=>{rawMode=!rawMode; update();};
 
   // areas
   const B=document.getElementById('area-body');
   B.innerHTML = rooms.map(r=>{
-    const now = r.factor? r.area*r.factor : r.area;
+    const now = (r.factor||1)*(rawMode? r.raw : r.area);
     const base = r.ngf||0;
     const d = base? now-base : null;
     const cls = d===null?'zero':Math.abs(d)<0.05?'zero':d>0?'up':'down';
@@ -708,7 +738,7 @@ function update(){
       <td class="num">${fmt(now)}</td>
       <td class="num ${cls}">${d===null?'新增':(d>0?'+':'')+fmt(d)}</td></tr>`;
   }).join('');
-  const sumNow = rooms.reduce((s,r)=>s+(r.factor?r.area*r.factor:r.area),0);
+  const sumNow = rooms.reduce((s,r)=>s+(r.factor||1)*(rawMode? r.raw : r.area),0);
   const sumBase = rooms.reduce((s,r)=>s+(r.ngf||0),0);
   document.getElementById('area-foot').innerHTML =
     `<tr><td>合計（含陽台 ½）</td><td class="num" style="color:var(--faint)">${fmt(sumBase)}</td>
