@@ -54,25 +54,25 @@ header{
 .tb-v{font-size:13px; font-weight:500; white-space:nowrap}
 h1{font-size:17px; font-weight:700; letter-spacing:-.01em}
 .sub{font-size:11.5px; color:var(--muted)}
-.hdr-actions{display:flex; align-items:center; gap:8px; padding:0 16px; border-left:1px solid var(--hair)}
+.hdr-actions{display:flex; align-items:center; gap:5px; padding:0 12px; border-left:1px solid var(--hair)}
 
 /* ---- app shell ---- */
-main{display:grid; grid-template-columns:minmax(0,1fr) 396px; height:calc(100% - 62px)}
+main{display:grid; grid-template-columns:minmax(0,1fr) 264px; height:calc(100% - 62px)}
 @media (max-width:1080px){ main{grid-template-columns:1fr; height:auto} #stage{height:70vh} }
 #stage{position:relative; background:var(--paper); overflow:hidden; display:flex}
 #plan{flex:1; touch-action:none; user-select:none}
 .rail{border-left:1px solid var(--line); background:var(--panel); overflow-y:auto; display:flex; flex-direction:column}
 
-section.card{border-bottom:1px solid var(--hair); padding:16px 18px}
-.card h2{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:600; margin-bottom:12px; display:flex; justify-content:space-between; align-items:baseline}
+section.card{border-bottom:1px solid var(--hair); padding:14px 14px}
+.card h2{font-size:10px; letter-spacing:.12em; gap:6px; flex-wrap:wrap; text-transform:uppercase; color:var(--faint); font-weight:600; margin-bottom:12px; display:flex; justify-content:space-between; align-items:baseline}
 
 /* ---- score ---- */
 .score-top{display:flex; align-items:baseline; gap:10px; margin-bottom:12px}
-.score-val{font-family:"Archivo",sans-serif; font-size:44px; font-weight:700; line-height:.9; letter-spacing:-.03em}
+.score-val{font-family:"Archivo",sans-serif; font-size:38px; font-weight:700; line-height:.9; letter-spacing:-.03em}
 .score-max{font-size:13px; color:var(--faint)}
 .score-tag{margin-left:auto; font-size:11px; font-weight:600; padding:3px 9px; border-radius:2px}
 .bars{display:flex; flex-direction:column; gap:7px}
-.bar-row{display:grid; grid-template-columns:104px 1fr 32px; gap:9px; align-items:center; font-size:11.5px}
+.bar-row{display:grid; grid-template-columns:74px 1fr 26px; gap:7px; align-items:center; font-size:11px}
 .bar-track{height:5px; background:var(--sunk); border-radius:3px; overflow:hidden}
 .bar-fill{height:100%; background:var(--ink); border-radius:3px; transition:width .18s ease}
 .bar-row .v{text-align:right; color:var(--muted); font-size:11px}
@@ -80,18 +80,20 @@ section.card{border-bottom:1px solid var(--hair); padding:16px 18px}
 /* ---- sliders ---- */
 .ctl{display:grid; gap:5px; margin-bottom:15px}
 .ctl:last-child{margin-bottom:0}
-.ctl-head{display:flex; align-items:baseline; gap:8px}
-.ctl-name{font-size:12.5px; font-weight:600}
+.ctl-head{display:flex; align-items:baseline; gap:6px; flex-wrap:wrap}
+.ctl-name{flex:1 0 100%}
+.ctl-name{font-size:12px; font-weight:600}
 .ctl-note{font-size:10.5px; color:var(--faint)}
-.ctl-val{margin-left:auto; font-size:12.5px; font-weight:600}
+.ctl-val{margin-left:auto; font-size:12px; font-weight:600}
 .ctl-delta{font-size:11px; margin-left:6px}
 input[type=range]{width:100%; accent-color:var(--neu); height:18px; margin:0}
 .pill{display:inline-block; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; padding:1px 6px; border-radius:2px; border:1px solid currentColor}
 .p-bearing{color:var(--neu)} .p-wet{color:var(--warn)} .p-light{color:var(--muted)}
 
 /* ---- table ---- */
-table{width:100%; border-collapse:collapse; font-size:12.5px}
-th{text-align:right; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); font-weight:600; padding-bottom:6px; border-bottom:1px solid var(--hair)}
+table{width:100%; border-collapse:collapse; font-size:11.5px; table-layout:fixed}
+td:first-child{overflow-wrap:anywhere; padding-right:4px}
+th{text-align:right; font-size:8.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--faint); font-weight:600; padding-bottom:6px; border-bottom:1px solid var(--hair)}
 th:first-child{text-align:left}
 td{padding:5px 0; border-bottom:1px solid var(--hair); text-align:right}
 td:first-child{text-align:left}
@@ -100,7 +102,7 @@ tfoot td{font-weight:600; border-top:1px solid var(--line); border-bottom:0; pad
 .up{color:var(--ok)} .down{color:var(--bad)} .zero{color:var(--faint)}
 
 /* ---- findings ---- */
-.finding{display:grid; grid-template-columns:auto 1fr; gap:9px; padding:8px 10px; border-radius:3px; margin-bottom:6px; font-size:12px; line-height:1.45}
+.finding{display:grid; grid-template-columns:auto 1fr; gap:7px; padding:7px 8px; border-radius:3px; margin-bottom:5px; font-size:11.5px; line-height:1.45}
 .finding:last-child{margin-bottom:0}
 .f-bad{background:var(--bad-bg)} .f-warn{background:var(--warn-bg)} .f-ok{background:var(--ok-bg)}
 .f-dot{width:7px; height:7px; border-radius:50%; margin-top:6px}
@@ -109,27 +111,32 @@ tfoot td{font-weight:600; border-top:1px solid var(--line); border-bottom:0; pad
 .f-fix{color:var(--muted); font-size:11.5px}
 
 /* ---- buttons ---- */
-button{font:inherit; font-size:12px; font-weight:500; padding:6px 11px; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:3px; cursor:pointer; transition:background .12s,border-color .12s}
+button{font:inherit; font-size:11.5px; font-weight:500; padding:5px 8px; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:3px; cursor:pointer; transition:background .12s,border-color .12s}
 button:hover{background:var(--sunk)}
 button:focus-visible{outline:2px solid var(--neu); outline-offset:2px}
 button.on{background:var(--ink); color:var(--paper); border-color:var(--ink)}
 button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
 .btn-row{display:flex; gap:6px; flex-wrap:wrap}
-.presets{display:grid; grid-template-columns:1fr 1fr; gap:6px}
-.preset{text-align:left; padding:9px 11px; line-height:1.35}
-.preset b{display:block; font-size:12px; font-weight:600}
-.preset span{font-size:10.5px; color:var(--muted)}
+.presets{display:grid; grid-template-columns:1fr; gap:5px}
+.preset{text-align:left; padding:7px 9px; line-height:1.3; display:flex; align-items:baseline; gap:7px; overflow:hidden}
+.preset b{font-size:11.5px; font-weight:600; white-space:nowrap}
+.preset span{font-size:10px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1}
 
 /* ---- cost ---- */
 .cost-tot{display:flex; align-items:baseline; gap:8px; margin-bottom:10px}
 .cost-num{font-family:"Archivo",sans-serif; font-size:26px; font-weight:700; letter-spacing:-.02em}
-.cost-lines{font-size:12px; display:flex; flex-direction:column; gap:4px}
-.cost-line{display:flex; justify-content:space-between; gap:12px; color:var(--muted)}
+.cost-lines{font-size:11.5px; display:flex; flex-direction:column; gap:4px}
+.cost-line{display:flex; justify-content:space-between; gap:8px; color:var(--muted)}
+.cost-line span:first-child{overflow-wrap:anywhere}
 
 /* ---- legend + svg ---- */
 .legend{position:absolute; left:16px; bottom:14px; display:flex; gap:14px; font-size:10.5px; color:var(--muted); background:color-mix(in srgb,var(--paper) 88%,transparent); padding:6px 10px; border-radius:3px}
 .lg{display:flex; align-items:center; gap:5px}
 .sw{width:14px; height:7px; border-radius:1px}
+.zoom{position:absolute; right:14px; bottom:14px; display:flex; gap:4px; background:color-mix(in srgb,var(--paper) 88%,transparent); padding:4px; border-radius:4px}
+.zoom button{width:28px; height:28px; padding:0; font-size:14px; line-height:1}
+.zoom .lvl{min-width:46px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); display:flex; align-items:center; justify-content:center}
+#stage.panning{cursor:grabbing}
 .hint{position:absolute; right:16px; top:14px; font-size:10.5px; color:var(--faint); text-align:right; line-height:1.6}
 .grab{cursor:ew-resize} .grab-v{cursor:ns-resize}
 .note{font-size:11.5px; color:var(--muted); line-height:1.55}
@@ -137,14 +144,14 @@ button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* ---- furniture ---- */
-.fitem{display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:7px 9px; border:1px solid var(--hair); border-radius:3px; margin-bottom:6px; background:var(--panel)}
+.fitem{display:grid; grid-template-columns:1fr auto; gap:3px 6px; padding:6px 7px; border:1px solid var(--hair); border-radius:3px; margin-bottom:6px; background:var(--panel)}
 .fitem.sel{border-color:var(--neu); box-shadow:0 0 0 2px color-mix(in srgb,var(--neu) 18%,transparent)}
 .fitem.err{border-color:var(--bad)}
 .fitem-top{display:flex; align-items:center; gap:6px; min-width:0}
 .fitem-name{font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .fitem-room{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); font-weight:600}
 .fitem-dims{display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted)}
-.fitem-dims input{width:52px; font:inherit; font-family:"IBM Plex Mono",monospace; font-size:11px; padding:2px 4px; border:1px solid var(--line); border-radius:2px; background:var(--sunk); color:var(--ink)}
+.fitem-dims input{width:46px; font:inherit; font-family:"IBM Plex Mono",monospace; font-size:11px; padding:2px 4px; border:1px solid var(--line); border-radius:2px; background:var(--sunk); color:var(--ink)}
 .fitem-btns{display:flex; gap:3px; align-self:start}
 .fitem-btns button{padding:3px 6px; font-size:11px; line-height:1}
 .fitem-err{grid-column:1/-1; font-size:11px; color:var(--bad); line-height:1.4}
@@ -175,7 +182,13 @@ select{font:inherit; font-size:12px; padding:5px 7px; border:1px solid var(--lin
 <main>
   <div id="stage">
     <svg id="plan" role="img" aria-label="Obergeschoss floor plan, walls and furniture can be dragged"></svg>
-    <div class="hint">Drag the <b>red control lines</b> to move walls<br>Drag furniture to place it · <span class="kbd">R</span> rotate · <span class="kbd">Del</span> remove</div>
+    <div class="hint">Drag the <b>red control lines</b> to move walls<br>Drag furniture to place it · <span class="kbd">R</span> rotate · <span class="kbd">Del</span> remove<br>Scroll to zoom · drag the empty sheet to pan</div>
+    <div class="zoom">
+      <button id="z-out" title="Zoom out (−)">−</button>
+      <span class="lvl" id="z-lvl">100%</span>
+      <button id="z-in" title="Zoom in (+)">+</button>
+      <button id="z-fit" title="Fit (0)">⤢</button>
+    </div>
     <div class="legend">
       <div class="lg"><span class="sw" style="background:var(--bestand-fill)"></span>Bestand existing</div>
       <div class="lg"><span class="sw" style="background:var(--neu)"></span>Neu new</div>
@@ -707,6 +720,31 @@ const WALLS=[
   ['xst','y2','-','ys','+','neu','storage'],
 ];
 let sel=null;   // uid of the selected furniture item
+/* zoom and pan live on the root <g>, so panning and zooming never redraw:
+   k is the scale, tx/ty the translation, both in viewBox units (centimetres) */
+const view={k:1, tx:0, ty:0};
+const clampK=k=>Math.max(0.45, Math.min(9, k));
+function applyView(){
+  const g=document.getElementById('vp');
+  if(g){
+    g.setAttribute('transform',`translate(${view.tx} ${view.ty}) scale(${view.k})`);
+    /* handles are interface, not drawing: undo the zoom on them so they stay
+       the same size on screen however far in you are */
+    g.querySelectorAll('.hnd').forEach(n=>n.setAttribute('r', n.dataset.r/view.k));
+    g.querySelectorAll('.hln').forEach(n=>n.setAttribute('stroke-width', n.dataset.sw/view.k));
+    g.querySelectorAll('.hda').forEach(n=>n.setAttribute('stroke-dasharray',
+      (14/view.k).toFixed(2)+' '+(8/view.k).toFixed(2)));
+  }
+  const l=document.getElementById('z-lvl');
+  if(l) l.textContent=Math.round(view.k*100)+'%';
+}
+function zoomAt(px,py,factor){
+  const k2=clampK(view.k*factor), r=k2/view.k;
+  view.tx = px - r*(px-view.tx);
+  view.ty = py - r*(py-view.ty);
+  view.k = k2; applyView();
+}
+function fitView(){ view.k=1; view.tx=0; view.ty=0; applyView(); }
 
 function draw(rooms, placed){
   const svg=document.getElementById('plan');
@@ -721,7 +759,7 @@ function draw(rooms, placed){
     <pattern id="clrbad" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="7" stroke="var(--bad)" stroke-width="1.4"/></pattern>`;
   svg.appendChild(defs);
-  const g=el('g'); svg.appendChild(g);
+  const g=el('g',{id:'vp'}); svg.appendChild(g);
 
   // --- locked stair core: one block from y1 down, outside the flat ---
   const TX=f('xe2','+'), TY=f('y1','+'), TW=f('xtrh','-')-TX, TH=f('ys','-')-TY;
@@ -845,8 +883,8 @@ function draw(rooms, placed){
           stroke:col,'stroke-width':2.2}));
         if(o.move){
           const hx = a.d==='x' ? p*M : c*M, hy = a.d==='x' ? c*M : p*M;
-          grp.appendChild(el('circle',{cx:hx, cy:hy, r:11, fill:col, opacity:.85}));
-          grp.appendChild(el('circle',{cx:hx, cy:hy, r:4.5, fill:'var(--panel)'}));
+          grp.appendChild(el('circle',{cx:hx, cy:hy, r:11, fill:col, opacity:.85, class:'hnd', 'data-r':11}));
+          grp.appendChild(el('circle',{cx:hx, cy:hy, r:4.5, fill:'var(--panel)', class:'hnd', 'data-r':4.5}));
         }
         g.appendChild(grp);
       }
@@ -880,13 +918,15 @@ function draw(rooms, placed){
     const grp=el('g',{class:a.d==='x'?'grab':'grab-v','data-ax':id});
     const L = a.d==='x' ? {x1:a.p*M,y1:off,x2:a.p*M,y2:(PLAN_H+.2)*M}
                         : {x1:off,y1:a.p*M,x2:(PLAN_W+.2)*M,y2:a.p*M};
-    grp.appendChild(el('line',{...L, stroke:'var(--neu)','stroke-width':2,'stroke-dasharray':'14 8', opacity:.55}));
-    grp.appendChild(el('line',{...L, stroke:'transparent','stroke-width':34}));
+    grp.appendChild(el('line',{...L, stroke:'var(--neu)','stroke-width':2,'stroke-dasharray':'14 8',
+      opacity:.55, class:'hln hda', 'data-sw':2}));
+    grp.appendChild(el('line',{...L, stroke:'transparent','stroke-width':34, class:'hln', 'data-sw':34}));
     const hx = a.d==='x' ? a.p*M : off, hy = a.d==='x' ? off : a.p*M;
-    grp.appendChild(el('circle',{cx:hx, cy:hy, r:15, fill:'var(--neu)'}));
-    grp.appendChild(el('circle',{cx:hx, cy:hy, r:6, fill:'var(--panel)'}));
+    grp.appendChild(el('circle',{cx:hx, cy:hy, r:15, fill:'var(--neu)', class:'hnd', 'data-r':15}));
+    grp.appendChild(el('circle',{cx:hx, cy:hy, r:6, fill:'var(--panel)', class:'hnd', 'data-r':6}));
     g.appendChild(grp);
   }
+  applyView();
   wire(svg);
 }
 /* German construction-drawing convention: clear dimensions with each wall
@@ -968,7 +1008,7 @@ function commitPos(it, x, y, room){
     it.snap=null; it.rx=cl((x-room.x0)/sw); it.ry=cl((y-room.y0)/sd);
   }
 }
-let drag=null;
+let drag=null, pan=null;
 function wire(svg){
   svg.querySelectorAll('[data-ax]').forEach(n=>n.addEventListener('pointerdown',e=>{
     drag={kind:'ax', id:n.dataset.ax, pre:snapshot()}; e.preventDefault(); }));
@@ -982,15 +1022,24 @@ function wire(svg){
     drag={kind:'furn', id:uid, pre:snapshot(), ox:p.x-r.x0, oy:p.y-r.y0};
     e.stopPropagation(); e.preventDefault(); update(); }));
 }
-function ptOf(e){
+function vbOf(e){                       // pointer in viewBox units, before the view transform
   const svg=document.getElementById('plan'), p=svg.createSVGPoint();
   p.x=e.clientX; p.y=e.clientY;
-  const q=p.matrixTransform(svg.getScreenCTM().inverse());
-  return {x:q.x/M, y:q.y/M};
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+function ptOf(e){                       // pointer in plan metres
+  const q=vbOf(e);
+  return {x:(q.x-view.tx)/view.k/M, y:(q.y-view.ty)/view.k/M};
 }
 (function(){
   const stage=document.getElementById('stage');
   stage.addEventListener('pointermove',e=>{
+    if(pan){
+      const q=vbOf(e);
+      if(Math.abs(q.x-pan.x)+Math.abs(q.y-pan.y)>2) pan.moved=true;
+      view.tx=pan.tx+(q.x-pan.x); view.ty=pan.ty+(q.y-pan.y); applyView();
+      return;
+    }
     if(!drag) return;
     const p=ptOf(e);
     if(drag.kind==='ax'){ setAxis(drag.id, AX[drag.id].d==='x'?p.x:p.y); update(); }
@@ -1006,14 +1055,42 @@ function ptOf(e){
       update();
     }
   });
-  const end=()=>{ if(drag){ push(drag.pre); drag=null; update(); } };
+  const end=()=>{
+    if(pan){ if(!pan.moved && sel!==null){ sel=null; update(); } stage.classList.remove('panning'); pan=null; return; }
+    if(drag){ push(drag.pre); drag=null; update(); }
+  };
   stage.addEventListener('pointerup',end);
   stage.addEventListener('pointerleave',end);
   stage.addEventListener('pointercancel',end);
+
+  /* drag the empty sheet to pan; a click that never moved clears the selection */
+  stage.addEventListener('pointerdown',e=>{
+    if(drag || e.target.closest('[data-ax],[data-door],[data-furn],.zoom,.legend')) return;
+    const q=vbOf(e);
+    pan={x:q.x, y:q.y, tx:view.tx, ty:view.ty, moved:false};
+    stage.classList.add('panning');
+  });
+  stage.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const q=vbOf(e);
+    zoomAt(q.x, q.y, Math.exp(-e.deltaY*(e.deltaMode===1?0.03:0.0015)));
+  },{passive:false});
+  const btn=(id,fn)=>document.getElementById(id).addEventListener('click',fn);
+  const mid=()=>{const r=document.getElementById('plan').viewBox.baseVal;
+                 return {x:r.x+r.width/2, y:r.y+r.height/2};};
+  btn('z-in', ()=>{const m=mid(); zoomAt(m.x,m.y,1.25);});
+  btn('z-out',()=>{const m=mid(); zoomAt(m.x,m.y,1/1.25);});
+  btn('z-fit',fitView);
   addEventListener('keydown',e=>{
     const typing=/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
-    if(typing || sel==null) return;
+    if(typing) return;
+    if(e.key==='+'||e.key==='='){ const m={x:0,y:0}, r=document.getElementById('plan').viewBox.baseVal;
+      zoomAt(r.x+r.width/2, r.y+r.height/2, 1.25); return; }
+    if(e.key==='-'||e.key==='_'){ const r=document.getElementById('plan').viewBox.baseVal;
+      zoomAt(r.x+r.width/2, r.y+r.height/2, 1/1.25); return; }
+    if(e.key==='0'){ fitView(); return; }
+    if(sel==null) return;
     if(e.key==='r'||e.key==='R'){ change(()=>{ const it=FURN.find(i=>i.uid===sel); if(it) it.rot=(it.rot+90)%360; }); }
     if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); change(()=>{ FURN=FURN.filter(i=>i.uid!==sel); sel=null; }); }
   });
@@ -1183,7 +1260,7 @@ function applyPreset(p){
   });
 }
 document.getElementById('presets').innerHTML=PRESETS.map((p,i)=>
-  `<button class="preset" data-i="${i}"><b>${p.n}</b><span>${p.s}</span></button>`).join('');
+  `<button class="preset" data-i="${i}" title="${p.s}"><b>${p.n}</b><span>${p.s}</span></button>`).join('');
 document.getElementById('presets').onclick=e=>{
   const b=e.target.closest('[data-i]'); if(b) applyPreset(PRESETS[+b.dataset.i]);
 };
