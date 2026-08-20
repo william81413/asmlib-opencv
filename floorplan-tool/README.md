@@ -8,10 +8,26 @@
 
 ```
 floorplan-tool/
-├── index.html              工具本體（介面英文）
+├── index.html              工具本體，單一檔案 246 KB，介面英文
 └── extract/
-    └── extract_plan.py     PDF → 牆體幾何的抽取管線（可重跑驗證）
+    ├── extract_plan.py     PDF → 牆體幾何的抽取管線（可重跑驗證）
+    └── embed_fonts.py      重新產生內嵌字體區塊
 ```
+
+**完全離線。** 雙擊 `index.html` 就能用，**零個網路請求** —— CSS、JS、
+建築師家具底圖的路徑資料、以及字體全部內嵌。實測把所有 http(s) 請求攔掉之後，
+幾何、尺寸鏈、面積、家具檢查、存檔全部照常，`document.fonts.check()` 三個字體都仍為 true。
+
+字體只取 `latin` 子集，5 個 woff2（Archivo 與 IBM Plex Sans 是可變字體，三個字重共用一個檔），
+123 KB raw → base64 後 165 KB。base64 區塊放在**檔案最尾端**的 `<style id="fonts">`，
+不放檔頭，否則這個檔案就沒辦法讀了。要重新產生：
+
+```bash
+python3 extract/embed_fonts.py --check    # 只看各檔大小
+python3 extract/embed_fonts.py > fonts.css
+```
+
+（抓 Google Fonts 一定要帶 Chrome 的 User-Agent，否則拿到的是 ttf 不是 woff2，大三倍。）
 
 介面是英文，但**圖面標註維持德式**（小數逗號、半公分上標 `3,56⁵`），房間名維持圖面德文
 （Schlafen、Wohnen/Kochen/Essen…）—— 那是建築師的標籤，改掉就對不上圖了。
