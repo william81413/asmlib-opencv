@@ -233,20 +233,20 @@ const AX = {
   xwext:{d:'x', p:0.185,  t:0.370, kind:'exterior', lock:1, name:'擴建西外牆'},
   xw:   {d:'x', p:0.120,  t:0.240, kind:'exterior', lock:1, name:'既有西外牆'},
   xbw:  {d:'x', p:4.030,  t:0.190, kind:'partition',lock:0, name:'陽台／暖房隔間', note:'11,5 cm 輕隔間'},
-  xmid: {d:'x', p:3.895,  t:0.175, kind:'bearing',  lock:0, name:'中央承重牆', note:'17,5 cm ─ 需過樑'},
+  xmid: {d:'x', p:3.8925,  t:0.175, kind:'bearing',  lock:0, name:'中央承重牆', note:'17,5 cm ─ 需過樑'},
   xst:  {d:'x', p:5.100,  t:0.115, kind:'partition',lock:0, name:'儲藏室隔間', note:'新增輕隔間', opt:'storage'},
-  xe2:  {d:'x', p:8.080,  t:0.240, kind:'exterior', lock:1, name:'南段東外牆'},
+  xe2:  {d:'x', p:8.0800,  t:0.240, kind:'exterior', lock:1, name:'南段東外牆'},
   xeext:{d:'x', p:9.515,  t:0.370, kind:'exterior', lock:1, name:'擴建東外牆'},
   xe:   {d:'x', p:9.580,  t:0.240, kind:'exterior', lock:1, name:'既有東外牆'},
-  xtrh: {d:'x', p:10.630, t:0.240, kind:'exterior', lock:1, name:'樓梯間東牆'},
+  xtrh: {d:'x', p:10.6350, t:0.240, kind:'exterior', lock:1, name:'樓梯間東牆'},
   // horizontal walls (y)
   ynext:{d:'y', p:0.0575, t:0.115, kind:'exterior', lock:1, name:'陽台女兒牆'},
-  yexts:{d:'y', p:3.120,  t:0.240, kind:'exterior', lock:1, name:'擴建南牆'},
+  yexts:{d:'y', p:3.1150,  t:0.240, kind:'exterior', lock:1, name:'擴建南牆'},
   yn:   {d:'y', p:3.370,  t:0.240, kind:'exterior', lock:1, name:'既有北外牆'},
-  y1:   {d:'y', p:8.635,  t:0.115, kind:'partition',lock:0, name:'臥室／起居 分界', note:'11,5 cm 輕隔間'},
-  y2:   {d:'y', p:10.850, t:0.115, kind:'partition',lock:0, name:'玄關／衛浴 分界', note:'11,5 cm ─ 動到排水', wet:1},
+  y1:   {d:'y', p:8.6375,  t:0.115, kind:'partition',lock:0, name:'臥室／起居 分界', note:'11,5 cm 輕隔間'},
+  y2:   {d:'y', p:10.7950+0.0575, t:0.115, kind:'partition',lock:0, name:'玄關／衛浴 分界', note:'11,5 cm ─ 動到排水', wet:1},
   ystep:{d:'y', p:9.930,  t:0.240, kind:'exterior', lock:1, name:'東側退縮線'},
-  ys:   {d:'y', p:13.925, t:0.240, kind:'exterior', lock:1, name:'既有南外牆'},
+  ys:   {d:'y', p:13.9300, t:0.240, kind:'exterior', lock:1, name:'既有南外牆'},
 };
 const BASE = Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p]));
 let storage = false;
@@ -432,7 +432,7 @@ function openingsOn(ax){ return OPEN.filter(o=>o[0]===ax); }
 function draw(){
   const svg=document.getElementById('plan');
   svg.textContent='';
-  const vb=[-PAD*M, -PAD*M, (PLAN_W+PAD*2)*M, (PLAN_H+PAD*1.5)*M];
+  const vb=[-PAD*M, -PAD*M, (PLAN_W+PAD*2)*M, (PLAN_H+PAD*2.05)*M];
   svg.setAttribute('viewBox', vb.join(' '));
   svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   const defs=el('defs');
@@ -518,13 +518,13 @@ function draw(){
     t2.textContent=`${shown.toFixed(2).replace('.',',')} m²${r.factor?' ½':''}`; g.appendChild(t2);
     if(!narrow){
       const t3=el('text',{x:cx,y:cy+50,'text-anchor':'middle','font-size':20,fill:'var(--faint)','font-family':'IBM Plex Mono, monospace'});
-      t3.textContent=`${r.w.toFixed(2).replace('.',',')} × ${r.d.toFixed(2).replace('.',',')}`; g.appendChild(t3);
+      t3.textContent=`${dim(r.w)} × ${dim(r.d)}`; g.appendChild(t3);
     }
     if(narrow){ t1.setAttribute('font-size',21); t2.setAttribute('font-size',20); }
   }
   // --- dimension chains ---
-  chain(g,'x', PLAN_H+0.55, ['xmid','xe2']);
-  chain(g,'y', -0.55, ['y1','y2']);
+  chain(g,'x', PLAN_H+0.62, ['xw','xmid','xe2','xtrh']);
+  chain(g,'y', -0.62, ['yn','y1','y2','ys']);
   // --- draggable axis handles ---
   let hi=0, hj=0;
   for(const [id,a] of Object.entries(AX)){
@@ -544,28 +544,46 @@ function draw(){
   }
   wireDrag(svg);
 }
+/* German construction-drawing convention: clear dimensions with each wall
+   thickness broken out as its own segment. Sub-metre values are written in
+   centimetres, half centimetres as a superscript 5 (11,5 cm -> 11\u2075). */
+function dim(v){
+  const cm=Math.round(v*1000)/10, whole=Math.floor(cm+1e-6);
+  const half=Math.abs(cm-whole-0.5)<0.06 || Math.abs(cm-whole-(-0.5))<0.06;
+  const w=half?Math.floor(cm):Math.round(cm);
+  if(v<1) return w+(half?'\u2075':'');
+  const m=Math.floor(w/100), c=w-m*100;
+  return m+','+String(c).padStart(2,'0')+(half?'\u2075':'');
+}
 function chain(g,dir,at,ids){
-  const pts = dir==='x'
-    ? [f('xw','-'), ...ids.map(i=>AX[i].p), f('xtrh','+')]
-    : [f('yn','-'), ...ids.map(i=>AX[i].p), f('ys','+')];
+  const pts=[]; for(const id of ids){ pts.push(f(id,'-'), f(id,'+')); }
   const y0=at*M;
-  const line = dir==='x' ? {x1:pts[0]*M,y1:y0,x2:pts.at(-1)*M,y2:y0} : {x1:y0,y1:pts[0]*M,x2:y0,y2:pts.at(-1)*M};
+  const line = dir==='x' ? {x1:pts[0]*M,y1:y0,x2:pts.at(-1)*M,y2:y0}
+                         : {x1:y0,y1:pts[0]*M,x2:y0,y2:pts.at(-1)*M};
   g.appendChild(el('line',{...line, stroke:'var(--faint)','stroke-width':1.5}));
-  for(const p of pts){
-    const tk = dir==='x'
-      ? {x1:p*M-9,y1:y0+9,x2:p*M+9,y2:y0-9} : {x1:y0+9,y1:p*M-9,x2:y0-9,y2:p*M+9};
+  for(const p of pts){                                    // 45 degree tick marks
+    const tk = dir==='x' ? {x1:p*M-9,y1:y0+9,x2:p*M+9,y2:y0-9}
+                         : {x1:y0+9,y1:p*M-9,x2:y0-9,y2:p*M+9};
     g.appendChild(el('line',{...tk, stroke:'var(--faint)','stroke-width':1.8}));
   }
   for(let i=0;i<pts.length-1;i++){
-    const mid=(pts[i]+pts[i+1])/2, len=pts[i+1]-pts[i];
-    const t=el('text',{'text-anchor':'middle','font-size':24,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'});
-    if(dir==='x'){ t.setAttribute('x',mid*M); t.setAttribute('y',y0-14); }
-    else { t.setAttribute('x',y0-10); t.setAttribute('y',mid*M);
-           t.setAttribute('transform',`rotate(-90 ${y0-10} ${mid*M})`); }
-    t.textContent=len.toFixed(2).replace('.',','); g.appendChild(t);
+    const len=pts[i+1]-pts[i]; if(len<0.02) continue;
+    const mid=(pts[i]+pts[i+1])/2;
+    const isWall = i%2===0;                               // segments alternate wall / clear
+    const tight = len<0.62;
+    const t=el('text',{'text-anchor':'middle','font-size':tight?19:24,
+      fill:isWall?'var(--faint)':'var(--muted)','font-family':'IBM Plex Mono, monospace'});
+    const off = tight ? (dir==='x'?-40:-36) : (dir==='x'?-14:-10);
+    if(dir==='x'){
+      t.setAttribute('x',mid*M); t.setAttribute('y',y0+off);
+      if(tight) t.setAttribute('transform',`rotate(-90 ${mid*M} ${y0+off})`);
+    }else{
+      t.setAttribute('x',y0+off); t.setAttribute('y',mid*M);
+      t.setAttribute('transform',`rotate(-90 ${y0+off} ${mid*M})`);
+    }
+    t.textContent=dim(len); g.appendChild(t);
   }
 }
-
 /* ---- drag ---- */
 let drag=null;
 function wireDrag(svg){
