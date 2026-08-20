@@ -135,39 +135,58 @@ button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
 .note{font-size:11.5px; color:var(--muted); line-height:1.55}
 .note code{font-family:"IBM Plex Mono",monospace; font-size:11px; background:var(--sunk); padding:1px 4px; border-radius:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- furniture ---- */
+.fitem{display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:7px 9px; border:1px solid var(--hair); border-radius:3px; margin-bottom:6px; background:var(--panel)}
+.fitem.sel{border-color:var(--neu); box-shadow:0 0 0 2px color-mix(in srgb,var(--neu) 18%,transparent)}
+.fitem.err{border-color:var(--bad)}
+.fitem-top{display:flex; align-items:center; gap:6px; min-width:0}
+.fitem-name{font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.fitem-room{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); font-weight:600}
+.fitem-dims{display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted)}
+.fitem-dims input{width:52px; font:inherit; font-family:"IBM Plex Mono",monospace; font-size:11px; padding:2px 4px; border:1px solid var(--line); border-radius:2px; background:var(--sunk); color:var(--ink)}
+.fitem-btns{display:flex; gap:3px; align-self:start}
+.fitem-btns button{padding:3px 6px; font-size:11px; line-height:1}
+.fitem-err{grid-column:1/-1; font-size:11px; color:var(--bad); line-height:1.4}
+.addrow{display:flex; gap:6px; margin-top:8px}
+select{font:inherit; font-size:12px; padding:5px 7px; border:1px solid var(--line); border-radius:3px; background:var(--panel); color:var(--ink); flex:1; min-width:0}
+.toggles{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px}
+.kbd{font-family:"IBM Plex Mono",monospace; font-size:10px; border:1px solid var(--line); border-bottom-width:2px; border-radius:3px; padding:0 4px; color:var(--muted)}
 </style>
 
 <header>
   <div class="tb">
     <div class="tb-cell">
-      <h1>Obergeschoss · 格局研究</h1>
-      <div class="sub">既有二戶改三戶 · 上層住戶 WG 2 · 自住情境</div>
+      <h1>Obergeschoss · Layout study</h1>
+      <div class="sub">Two flats converted to three · upper flat WG 2 · owner-occupied</div>
     </div>
     <div class="tb-cell"><div class="tb-k">Bestand</div><div class="tb-v num">9,70 × 10,80 m</div></div>
-    <div class="tb-cell"><div class="tb-k">原案 NGF</div><div class="tb-v num">96,00 m²</div></div>
-    <div class="tb-cell"><div class="tb-k">現況淨面積</div><div class="tb-v num" id="hdr-area">–</div></div>
+    <div class="tb-cell"><div class="tb-k">NGF as drawn</div><div class="tb-v num">96,00 m²</div></div>
+    <div class="tb-cell"><div class="tb-k">NGF now</div><div class="tb-v num" id="hdr-area">–</div></div>
   </div>
   <div class="hdr-actions">
-    <button id="btn-reset">回到原案</button>
-    <button id="btn-export">匯出 JSON</button>
+    <button id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+    <button id="btn-redo" title="Redo (Ctrl+Shift+Z)">↪</button>
+    <button id="btn-reset">As drawn</button>
+    <button id="btn-export">Copy JSON</button>
   </div>
 </header>
 
 <main>
   <div id="stage">
-    <svg id="plan" role="img" aria-label="Obergeschoss 平面圖，可拖曳牆體調整格局"></svg>
-    <div class="hint">拖曳 <b>紅色控制線</b> 移動牆體<br>或用右側滑桿微調</div>
+    <svg id="plan" role="img" aria-label="Obergeschoss floor plan, walls and furniture can be dragged"></svg>
+    <div class="hint">Drag the <b>red control lines</b> to move walls<br>Drag furniture to place it · <span class="kbd">R</span> rotate · <span class="kbd">Del</span> remove</div>
     <div class="legend">
-      <div class="lg"><span class="sw" style="background:var(--bestand-fill)"></span>Bestand 既有</div>
-      <div class="lg"><span class="sw" style="background:var(--neu)"></span>Neu 新建</div>
-      <div class="lg"><span class="sw" style="background:transparent;border:2px dashed var(--abbruch)"></span>Abbruch 拆除</div>
-      <div class="lg"><span class="sw" style="background:var(--locked);border:1px solid var(--line)"></span>不可調整</div>
+      <div class="lg"><span class="sw" style="background:var(--bestand-fill)"></span>Bestand existing</div>
+      <div class="lg"><span class="sw" style="background:var(--neu)"></span>Neu new</div>
+      <div class="lg"><span class="sw" style="background:transparent;border:2px dashed var(--abbruch)"></span>Abbruch demolished</div>
+      <div class="lg"><span class="sw" style="background:var(--locked);border:1px solid var(--line)"></span>locked</div>
     </div>
   </div>
 
   <div class="rail">
     <section class="card">
-      <h2>格局評分 <span style="text-transform:none;letter-spacing:0">自住權重</span></h2>
+      <h2>Layout score <span style="text-transform:none;letter-spacing:0">owner-occupied</span></h2>
       <div class="score-top">
         <span class="score-val num" id="score">–</span><span class="score-max">/ 100</span>
         <span class="score-tag" id="score-tag"></span>
@@ -176,47 +195,67 @@ button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
     </section>
 
     <section class="card">
-      <h2>預設方案</h2>
+      <h2>Presets</h2>
       <div class="presets" id="presets"></div>
     </section>
 
     <section class="card">
-      <h2>可動尺寸</h2>
+      <h2>Adjustable dimensions</h2>
       <div id="controls"></div>
     </section>
 
     <section class="card">
-      <h2>面積 <button id="tg-raw" class="ghost" style="font-size:10px;padding:2px 7px;border:1px solid var(--line);text-transform:none;letter-spacing:0">建築師 NGF</button></h2>
+      <h2>Furniture</h2>
+      <div class="toggles">
+        <button id="tg-clear">Clearances</button>
+        <button id="tg-ghost">Sheet furniture</button>
+        <button id="tg-wipe" class="ghost">Remove all</button>
+      </div>
+      <div id="flist"></div>
+      <div class="addrow">
+        <select id="add-room"></select>
+        <select id="add-item"></select>
+        <button id="btn-add">Add</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Doors</h2>
+      <div id="doorlist"></div>
+    </section>
+
+    <section class="card">
+      <h2>Areas <button id="tg-raw" class="ghost" style="font-size:10px;padding:2px 7px;border:1px solid var(--line);text-transform:none;letter-spacing:0">Sheet NGF</button></h2>
       <table>
-        <thead><tr><th>空間</th><th>原案</th><th>現在</th><th>Δ</th></tr></thead>
+        <thead><tr><th>Room</th><th>As drawn</th><th>Now</th><th>Δ</th></tr></thead>
         <tbody id="area-body"></tbody>
         <tfoot id="area-foot"></tfoot>
       </table>
     </section>
 
     <section class="card">
-      <h2>規則檢核</h2>
+      <h2>Checks</h2>
       <div id="findings"></div>
     </section>
 
     <section class="card">
-      <h2>施工成本量級</h2>
-      <div class="cost-tot"><span class="cost-num num" id="cost">–</span><span class="note">粗估，非報價</span></div>
+      <h2>Cost, order of magnitude</h2>
+      <div class="cost-tot"><span class="cost-num num" id="cost">–</span><span class="note">rough, not a quote</span></div>
       <div class="cost-lines" id="cost-lines"></div>
     </section>
 
     <section class="card">
-      <h2>方案存檔</h2>
+      <h2>Saved options</h2>
       <div class="btn-row" style="margin-bottom:8px">
-        <button id="btn-save">存成方案</button>
-        <button id="btn-clear" class="ghost">清空</button>
+        <button id="btn-save">Save this option</button>
+        <button id="btn-clear" class="ghost">Clear</button>
       </div>
       <div id="saved" class="cost-lines"></div>
     </section>
 
     <section class="card">
-      <h2>資料來源</h2>
-      <p class="note">幾何由建築師的 <code>Obergeschoss.pdf</code>（2026-08-03 版）向量圖層自動抽取（牆體依填色分類 Bestand / Neu / Abbruch），並與圖上尺寸鏈逐段核對：下方尺寸鏈 <code>24+3,56⁵+17⁵+3,98+24+2,31⁵+24 = 10,75⁵</code> 七段全數吻合。<br><br>本工具顯示的是<b>幾何淨面積</b>；建築師標註的 NGF 在 Schlafen / Kind / Wohnen / Bad 各少 0,55–0,90 m²（合計約 3 m²），原因待與建築師確認（可能為管道間或牆面內襯扣除）。</p>
+      <h2>Sources</h2>
+      <p class="note">Geometry is read straight out of the vector layer of the architect's <code>Obergeschoss.pdf</code> (03.08.2026), walls classified by fill colour into Bestand / Neu / Abbruch, and checked against the sheet's own dimension chain: <code>24+3,56⁵+17⁵+3,98+24+2,31⁵+24 = 10,75⁵</code> — all seven lines match.<br><br>Areas are anchored to the NGF printed on the sheet. Moving a wall applies the geometric change to that number. Switch to <b>Raw geometry</b> to see the uncalibrated values: they run 0,55–0,91 m² over the sheet in Schlafen, Kind, Wohnen and Bad — about 3 m² in total, still to be confirmed with the architect.<br><br><b>No ceiling heights are modelled.</b> If the rooms sit under a roof slope, tall furniture may pass the plan check and still not fit.</p>
     </section>
   </div>
 </main>
@@ -231,53 +270,55 @@ button.ghost{border-color:transparent; color:var(--muted); padding:6px 8px}
    ============================================================ */
 const AX = {
   // vertical walls (x)
-  xwext:{d:'x', p:0.185,  t:0.370, kind:'exterior', lock:1, name:'擴建西外牆'},
-  xw:   {d:'x', p:0.120,  t:0.240, kind:'exterior', lock:1, name:'既有西外牆'},
-  xbw:  {d:'x', p:4.024,  t:0.208, kind:'partition',lock:0, name:'陽台／暖房隔間', note:'11,5 cm 輕隔間'},
-  xmid: {d:'x', p:3.8925,  t:0.175, kind:'bearing',  lock:0, name:'中央承重牆', note:'17,5 cm ─ 需過樑'},
-  xst:  {d:'x', p:5.100,  t:0.115, kind:'partition',lock:0, name:'儲藏室隔間', note:'新增輕隔間', opt:'storage'},
-  xe2:  {d:'x', p:8.0800,  t:0.240, kind:'exterior', lock:1, name:'南段東外牆'},
-  xeext:{d:'x', p:9.515,  t:0.370, kind:'exterior', lock:1, name:'擴建東外牆'},
-  xe:   {d:'x', p:9.580,  t:0.240, kind:'exterior', lock:1, name:'既有東外牆'},
-  xtrh: {d:'x', p:10.6350, t:0.240, kind:'exterior', lock:1, name:'樓梯間東牆'},
+  xwext:{d:'x', p:0.185,  t:0.370, kind:'exterior', lock:1, name:'Extension west wall'},
+  xw:   {d:'x', p:0.120,  t:0.240, kind:'exterior', lock:1, name:'Existing west wall'},
+  xbw:  {d:'x', p:4.024,  t:0.208, kind:'partition',lock:0, name:'Balcony / sunroom divider', note:'11,5 cm stud partition'},
+  xmid: {d:'x', p:3.8925, t:0.175, kind:'bearing',  lock:0, name:'Central bearing wall', note:'17,5 cm — needs a lintel'},
+  xst:  {d:'x', p:5.100,  t:0.115, kind:'partition',lock:0, name:'Store partition', note:'new stud partition', opt:'storage'},
+  xe2:  {d:'x', p:8.0800, t:0.240, kind:'exterior', lock:1, name:'South-wing east wall'},
+  xeext:{d:'x', p:9.515,  t:0.370, kind:'exterior', lock:1, name:'Extension east wall'},
+  xe:   {d:'x', p:9.580,  t:0.240, kind:'exterior', lock:1, name:'Existing east wall'},
+  xtrh: {d:'x', p:10.6350,t:0.240, kind:'exterior', lock:1, name:'Stairwell east wall'},
   // horizontal walls (y)
-  ynext:{d:'y', p:0.0575, t:0.115, kind:'exterior', lock:1, name:'陽台女兒牆'},
-  yexts:{d:'y', p:3.1150,  t:0.240, kind:'exterior', lock:1, name:'擴建南牆'},
-  yn:   {d:'y', p:3.370,  t:0.240, kind:'exterior', lock:1, name:'既有北外牆'},
-  y1:   {d:'y', p:8.6375,  t:0.115, kind:'partition',lock:0, name:'臥室／起居 分界', note:'11,5 cm 輕隔間'},
-  y2:   {d:'y', p:10.7950+0.0575, t:0.115, kind:'partition',lock:0, name:'玄關／衛浴 分界', note:'11,5 cm ─ 動到排水', wet:1},
-  ys:   {d:'y', p:13.9300, t:0.240, kind:'exterior', lock:1, name:'既有南外牆'},
+  ynext:{d:'y', p:0.0575, t:0.115, kind:'exterior', lock:1, name:'Balcony parapet'},
+  yexts:{d:'y', p:3.1150, t:0.240, kind:'exterior', lock:1, name:'Extension south wall'},
+  yn:   {d:'y', p:3.370,  t:0.240, kind:'exterior', lock:1, name:'Existing north wall'},
+  y1:   {d:'y', p:8.6375, t:0.115, kind:'partition',lock:0, name:'Bedroom / living divider', note:'11,5 cm stud partition'},
+  y2:   {d:'y', p:10.7950+0.0575, t:0.115, kind:'partition',lock:0, name:'Hall / bathroom divider', note:'11,5 cm — moves the drainage', wet:1},
+  ys:   {d:'y', p:13.9300,t:0.240, kind:'exterior', lock:1, name:'Existing south wall'},
 };
 /* Existing masonry shaft against the bearing wall. It cannot be moved, it eats
    floor area, and it blocks furniture — so it is modelled, not ignored. */
-const CHIMNEY={x0:3.285, y0:8.704, x1:3.793, y1:9.263, name:'既有煙囪'};
+const CHIMNEY={x0:3.285, y0:8.704, x1:3.793, y1:9.263, name:'Existing chimney'};
 const CHIMNEY_AREA=(CHIMNEY.x1-CHIMNEY.x0)*(CHIMNEY.y1-CHIMNEY.y0);
 const cx0=(CHIMNEY.x0+CHIMNEY.x1)/2, cy0=(CHIMNEY.y0+CHIMNEY.y1)/2;
 
 const BASE = Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p]));
 let storage = false;
-let rawMode  = false;   // false = architect's NGF (default), true = raw geometry
+let rawMode = false;      // false = architect's NGF (default), true = raw geometry
+let showClear = true;     // draw clearance zones
+let showGhost = false;    // the architect's own furniture, as a reference underlay
 
 const f = (id,s)=> AX[id].p + (s==='+' ? AX[id].t/2 : -AX[id].t/2);
 
 /* rooms: faces reference [axis, sign]; sign '+' = outer side of that wall */
 const ROOMS = [
-  {id:'balkon', name:'Balkon', de:'Balkon 1/2', kind:'balcony', factor:.5,
+  {id:'balkon', name:'Balcony', de:'Balkon 1/2', kind:'balcony', factor:.5,
    x:[['xwext','+'],['xbw','-']], y:[['ynext','+'],['yexts','-']], ngf:5.13},
-  {id:'winter', name:'Wintergarten', de:'Wintergarten', kind:'sunroom',
+  {id:'winter', name:'Sunroom', de:'Wintergarten', kind:'sunroom',
    x:[['xbw','+'],['xeext','-']], y:[['ynext','+'],['yexts','-']], ngf:14.99},
-  {id:'schlafen', name:'主臥 Schlafen', de:'Schlafen', kind:'bed_main',
+  {id:'schlafen', name:'Schlafen', de:'Schlafen', kind:'bed_main',
    x:[['xw','+'],['xmid','-']], y:[['yn','+'],['y1','-']], ngf:17.60},
-  {id:'kind', name:'兒童房 Kind', de:'Kind', kind:'bed_child',
+  {id:'kind', name:'Kind', de:'Kind', kind:'bed_child',
    x:[['xw','+'],['xmid','-']], y:[['y1','+'],['ys','-']], ngf:17.40},
-  {id:'wohnen', name:'起居／廚房／餐廳', de:'Wohnen/Kochen/Essen', kind:'living',
+  {id:'wohnen', name:'Wohnen/Kochen/Essen', de:'Wohnen/Kochen/Essen', kind:'living',
    x:[['xmid','+'],['xe','-']], y:[['yn','+'],['y1','-']], ngf:27.06},
-  {id:'diele', name:'玄關 Diele', de:'Diele', kind:'hall',
+  {id:'diele', name:'Diele', de:'Diele', kind:'hall',
    x:[['xmid','+'],['xe2','-']], y:[['y1','+'],['y2','-']], ngf:8.32},
-  {id:'bad', name:'衛浴 Bad/WC', de:'Bad/WC', kind:'bath',
+  {id:'bad', name:'Bad/WC', de:'Bad/WC', kind:'bath',
    x:[['xst','+'],['xe2','-']], y:[['y2','+'],['ys','-']], ngf:10.63, alt:{x:[['xmid','+'],['xe2','-']]}},
-  {id:'abstell', name:'儲藏 Abstellraum', de:'Abstellraum', kind:'store', only:'storage',
-   x:[['xmid','+'],['xst','-']], y:[['y2','+'],['ys','-']], ngf:0},
+  {id:'abstell', name:'Abstellraum', de:'Abstellraum', kind:'store', only:'storage',
+   x:[['xmid','+'],['xst','-']], y:[['y2','+'],['ys','-']], ngf:null},
 ];
 
 function geom(anchor){
@@ -316,94 +357,270 @@ const BASE_AREA=(()=>{
 })();
 
 /* ============================================================
-   RULES — owner-occupied weighting. Every threshold is a clear
-   dimension in metres and is stated in the finding text.
+   DOORS — openings are state, not constants: where a door sits
+   decides how the furniture works, so it has to be movable.
+   pos = centre along the wall run, in metres.
+   hinge 'a' = the low-coordinate jamb, 'b' = the high one.
+   swing '+' / '-' = which side of the wall the leaf opens into.
    ============================================================ */
-function fitsBed(w,d,bw,bl,side1,side2,foot){
-  const ok=(W,D)=> W >= bw+side1+side2 && D >= bl+foot;
-  return ok(w,d)||ok(d,w);
+let DOORS = [
+  {id:'d1', room:'schlafen', ax:'xmid', pos:7.487, w:0.885, kind:'door',  hinge:'a', swing:'-', move:1, name:'Schlafen door'},
+  {id:'d2', room:'kind', ax:'xmid', pos:9.938, w:0.885, kind:'door',  hinge:'a', swing:'-', move:1, name:'Kind door'},
+  {id:'d3', room:'bad', ax:'y2',   pos:4.900, w:0.884, kind:'door',  hinge:'a', swing:'-', move:1, name:'Bad/WC door'},
+  {id:'d4', room:'diele', ax:'xe2',  pos:9.424, w:1.007, kind:'entry', hinge:'a', swing:'-', move:1, name:'Front door'},
+  {id:'o1', ax:'y1',   pos:4.911, w:1.863, kind:'open',  move:1, name:'Living / hall opening'},
+  {id:'o2', ax:'yn',   pos:5.683, w:1.740, kind:'open',  move:0, name:'Opening to the Wintergarten'},
+  {id:'o3', ax:'yexts',pos:5.683, w:1.740, kind:'open',  move:0, name:'Sunroom opening'},
+  {id:'w1', ax:'xw',   pos:5.999, w:1.998, kind:'win',   move:0},
+  {id:'w2', ax:'xw',   pos:11.557,w:1.600, kind:'win',   move:0},
+  {id:'w3', ax:'ys',   pos:2.201, w:1.600, kind:'win',   move:0},
+  {id:'w4', ax:'ys',   pos:6.050, w:1.601, kind:'win',   move:0},
+  {id:'w5', ax:'xe',   pos:4.560, w:1.499, kind:'win',   move:0},
+  {id:'w6', ax:'xe',   pos:7.148, w:1.596, kind:'win',   move:0},
+];
+const doorsOn = ax => DOORS.filter(o=>o.ax===ax);
+
+/* the quarter-disc a door leaf sweeps, as the axis-aligned box that contains it */
+function swingBox(o){
+  if(o.kind!=='door' && o.kind!=='entry') return null;
+  const a=AX[o.ax], p=a.p, lo=o.pos-o.w/2, hi=o.pos+o.w/2;
+  const h = o.hinge==='a' ? lo : hi;                 // hinge point along the wall
+  const along = o.hinge==='a' ? h+o.w : h-o.w;       // leaf tip when fully open
+  const off   = p + (o.swing==='+' ? o.w : -o.w);
+  const b=(u,v)=>[Math.min(u,v),Math.max(u,v)];
+  const [ax0,ax1]=b(p,off), [ay0,ay1]=b(h,along);
+  return a.d==='x' ? {x0:ax0,y0:ay0,x1:ax1,y1:ay1} : {x0:ay0,y0:ax0,x1:ay1,y1:ax1};
 }
+/* a walk-through opening needs 0,60 m either side kept free */
+function openBox(o){
+  if(o.kind!=='open') return null;
+  const a=AX[o.ax], p=a.p, R=0.60, lo=o.pos-o.w/2, hi=o.pos+o.w/2;
+  return a.d==='x' ? {x0:p-a.t/2-R, y0:lo, x1:p+a.t/2+R, y1:hi}
+                   : {x0:lo, y0:p-a.t/2-R, x1:hi, y1:p+a.t/2+R};
+}
+/* the strip a window needs kept clear of tall furniture */
+function winBox(o){
+  if(o.kind!=='win') return null;
+  const a=AX[o.ax], p=a.p, R=0.20, lo=o.pos-o.w/2, hi=o.pos+o.w/2;
+  return a.d==='x' ? {x0:p-a.t/2-R, y0:lo, x1:p+a.t/2+R, y1:hi}
+                   : {x0:lo, y0:p-a.t/2-R, x1:hi, y1:p+a.t/2+R};
+}
+function doorLimits(o){
+  const a=AX[o.ax], J=0.10;                           // a jamb has to survive at each end
+  const runs = WALLS.filter(w=>w[0]===o.ax && (w[6]!=='storage'||storage))
+    .map(w=>[AX[w[1]].p+AX[w[1]].t/2, AX[w[3]].p-AX[w[3]].t/2]);   // inner faces
+  let lo=-1e9, hi=1e9;
+  const run = runs.find(r=>o.pos>=r[0]-1e-6 && o.pos<=r[1]+1e-6) || runs[0];
+  if(run){ lo=run[0]; hi=run[1]; }
+  if(o.room){                                         // and it stays with the room it serves
+    const r=geom().find(q=>q.id===o.room);
+    if(r){ const s0 = a.d==='x' ? r.y0 : r.x0, s1 = a.d==='x' ? r.y1 : r.x1;
+           lo=Math.max(lo,s0); hi=Math.min(hi,s1); }
+  }
+  if(hi-lo < o.w+2*J) return [o.pos,o.pos];
+  return [lo+o.w/2+J, hi-o.w/2-J];
+}
+
+/* ============================================================
+   FURNITURE — you place it yourself; the tool only checks.
+   An item stores WHERE IT SITS RELATIVE TO ITS ROOM, never an
+   absolute point, so a wall move carries it along instead of
+   scattering the layout.
+      snap 'n'|'s'|'e'|'w'  back against that room edge, `along` 0..1 down it
+      snap null             free standing, `rx`/`ry` 0..1 inside the room
+   Clearance is directional in the item's own frame and rotates with it.
+   ============================================================ */
+const CATALOG={
+  bed_180:     {n:'Double bed 1,80 × 2,00', cat:'bed',       w:1.80,d:2.00, cl:{front:.70,left:.75,right:.55}, tall:0, for:['bed_main']},
+  bed_140:     {n:'Double bed 1,40 × 2,00', cat:'bed',       w:1.40,d:2.00, cl:{front:.70,left:.75,right:.55}, tall:0, for:['bed_main']},
+  bed_90:      {n:'Single bed 0,90 × 2,00', cat:'bed',       w:0.90,d:2.00, cl:{front:.70,right:.70},          tall:0, for:['bed_child','bed_main']},
+  wardrobe_200:{n:'Wardrobe 2,00 × 0,60',   cat:'wardrobe',  w:2.00,d:0.60, cl:{front:.65},                    tall:1, for:['bed_main','bed_child']},
+  wardrobe_120:{n:'Wardrobe 1,20 × 0,60',   cat:'wardrobe',  w:1.20,d:0.60, cl:{front:.65},                    tall:1, for:['bed_main','bed_child']},
+  nightstand:  {n:'Nightstand 0,45 × 0,40', cat:'nightstand',w:0.45,d:0.40, cl:{},                             tall:0, for:['bed_main','bed_child']},
+  desk_140:    {n:'Desk 1,40 × 0,70',       cat:'desk',      w:1.40,d:0.70, cl:{front:.80},                    tall:0, for:['bed_child','bed_main','living']},
+  shelf_80:    {n:'Shelf 0,80 × 0,35',      cat:'shelf',     w:0.80,d:0.35, cl:{front:.60},                    tall:1, for:['bed_child','bed_main','living']},
+  sofa_240:    {n:'Sofa 2,40 × 0,95',       cat:'sofa',      w:2.40,d:0.95, cl:{front:.90},                    tall:0, for:['living']},
+  sofa_180:    {n:'Sofa 1,80 × 0,95',       cat:'sofa',      w:1.80,d:0.95, cl:{front:.90},                    tall:0, for:['living']},
+  table_160:   {n:'Dining table 1,60 × 0,90',cat:'table',    w:1.60,d:0.90, cl:{front:.80,back:.80,left:.80,right:.80}, tall:0, for:['living']},
+  table_200:   {n:'Dining table 2,00 × 1,00',cat:'table',    w:2.00,d:1.00, cl:{front:.80,back:.80,left:.80,right:.80}, tall:0, for:['living']},
+  tv_180:      {n:'TV unit 1,80 × 0,45',    cat:'tv',        w:1.80,d:0.45, cl:{front:.60},                    tall:0, for:['living']},
+  sideboard:   {n:'Sideboard 1,60 × 0,45',  cat:'sideboard', w:1.60,d:0.45, cl:{front:.60},                    tall:1, for:['living','bed_main']},
+  custom:      {n:'Custom item',            cat:'other',     w:1.00,d:0.60, cl:{front:.60},                    tall:0, for:['bed_main','bed_child','living']},
+};
+const FURN_ROOMS=['schlafen','kind','wohnen'];
+const REQUIRED={bed_main:['bed','wardrobe'], bed_child:['bed','desk','wardrobe'], living:['sofa','table']};
+const CAT_LABEL={bed:'a bed', wardrobe:'a wardrobe', desk:'a desk', sofa:'a sofa', table:'a dining table'};
+/* local side -> global side, for a clockwise rotation of the item */
+const DIRMAP={0:{back:'n',front:'s',left:'w',right:'e'}, 90:{back:'e',front:'w',left:'n',right:'s'},
+              180:{back:'s',front:'n',left:'e',right:'w'}, 270:{back:'w',front:'e',left:'s',right:'n'}};
+
+let FURN=[], uidSeq=1;
+const dims = it => (it.rot%180) ? {W:it.d, D:it.w} : {W:it.w, D:it.d};
+function clearOf(it){
+  const m=DIRMAP[it.rot], out={n:0,s:0,e:0,w:0};
+  for(const k in it.cl) if(m[k]) out[m[k]] = Math.max(out[m[k]], it.cl[k]||0);
+  return out;
+}
+function seed(){
+  FURN=[];
+  const add=(room,key,o)=>{const c=CATALOG[key];
+    FURN.push({uid:uidSeq++, key, room, n:c.n, cat:c.cat, w:c.w, d:c.d, cl:{...c.cl}, tall:c.tall,
+               rot:0, snap:null, along:.5, rx:.5, ry:.5, ...o});};
+  add('schlafen','bed_180',      {snap:'n', along:.40, rot:0});
+  add('schlafen','wardrobe_200', {snap:'s', along:.15, rot:180});
+  add('kind','bed_90',           {snap:'w', along:.62, rot:270});
+  add('kind','desk_140',         {snap:'s', along:.10, rot:180});
+  add('kind','wardrobe_120',     {snap:'e', along:.95, rot:90});
+  add('wohnen','sofa_240',       {snap:'s', along:.67, rot:180});
+  add('wohnen','table_160',      {snap:null, rx:.83, ry:.17});
+}
+seed();
+
+/* resolve every item's rectangle from its room and anchor */
+function layout(rooms){
+  const byId=Object.fromEntries(rooms.map(r=>[r.id,r]));
+  const out=[];
+  for(const it of FURN){
+    const room=byId[it.room]; if(!room) continue;
+    const {W,D}=dims(it);
+    const sw=Math.max(0.001, room.w-W), sd=Math.max(0.001, room.d-D);
+    let x,y;
+    if(it.snap==='n'){ x=room.x0+it.along*sw; y=room.y0; }
+    else if(it.snap==='s'){ x=room.x0+it.along*sw; y=room.y1-D; }
+    else if(it.snap==='w'){ x=room.x0;        y=room.y0+it.along*sd; }
+    else if(it.snap==='e'){ x=room.x1-W;      y=room.y0+it.along*sd; }
+    else { x=room.x0+it.rx*sw; y=room.y0+it.ry*sd; }
+    out.push({...it, room, W, D, x0:x, y0:y, x1:x+W, y1:y+D, issues:[]});
+  }
+  return out;
+}
+const ov=(a,b,t=0.004)=> a.x0<b.x1-t && b.x0<a.x1-t && a.y0<b.y1-t && b.y0<a.y1-t;
+const grow=(r,c)=>({x0:r.x0-c.w, y0:r.y0-c.n, x1:r.x1+c.e, y1:r.y1+c.s});
+const cm = v => Math.round(v*100);
+
+function furnCheck(rooms, placed){
+  const swings=DOORS.map(swingBox).filter(Boolean);
+  const wins=DOORS.map(winBox).filter(Boolean);
+  const opens=DOORS.map(openBox).filter(Boolean);
+  for(const it of placed){
+    const R=it.room;
+    if(it.x0<R.x0-0.004 || it.y0<R.y0-0.004 || it.x1>R.x1+0.004 || it.y1>R.y1+0.004){
+      const over=Math.max(R.x0-it.x0, R.y0-it.y0, it.x1-R.x1, it.y1-R.y1);
+      it.issues.push({lv:'bad', msg:`sticks out of ${R.de} by ${cm(over)} cm — the room is too small for it`});
+    }
+    if(R.chimney && ov(it,CHIMNEY)) it.issues.push({lv:'bad', msg:'runs into the existing chimney, which cannot be moved'});
+    for(const o of placed){
+      if(o.uid===it.uid || o.room.id!==it.room.id) continue;
+      if(ov(it,o)) it.issues.push({lv:'bad', msg:`overlaps ${o.n}`});
+    }
+    const c=clearOf(it), zone=grow(it,c);
+    if(c.n||c.s||c.e||c.w) for(const o of placed){
+      if(o.uid===it.uid || o.room.id!==it.room.id) continue;
+      if(!ov(zone,o) || ov(it,o)) continue;
+      const short=Math.min(
+        o.x0>=it.x1 ? c.e-(o.x0-it.x1) : Infinity, o.x1<=it.x0 ? c.w-(it.x0-o.x1) : Infinity,
+        o.y0>=it.y1 ? c.s-(o.y0-it.y1) : Infinity, o.y1<=it.y0 ? c.n-(it.y0-o.y1) : Infinity);
+      it.issues.push({lv:'bad', msg:`clearance to ${o.n} short by ${cm(Math.max(short,0.01))} cm`});
+    }
+    for(const s of swings) if(ov(it,s)) it.issues.push({lv:'bad', msg:'stands in a door swing'});
+    for(const o of opens) if(ov(it,o)) it.issues.push({lv:'warn', msg:'narrows a walk-through opening'});
+    if(it.tall) for(const w of wins) if(ov(it,w))
+      it.issues.push({lv:'warn', msg:'a tall unit here blocks a window'});
+  }
+  return placed;
+}
+
+/* ============================================================
+   RULES — every threshold is a clear dimension in metres and is
+   stated in the finding itself. Furniture findings come from the
+   real placement, not from a width heuristic.
+   ============================================================ */
 const RULES = {
   bed_main:(r)=>{
     const F=[];
-    if(r.area<12) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，主臥低於 12 m²`,'把中牆往東移可補回']);
-    if(r.short<2.80) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 2,80 m`,'雙人床 1,80 + 兩側通行 0,75/0,55 放不下']);
-    else if(r.short<3.10) F.push(['warn',`淨寬 ${r.short.toFixed(2)} m 偏緊`,'床兩側只剩最小通行，建議 ≥ 3,10 m']);
-    if(!fitsBed(r.w,r.d,1.80,2.00,0.75,0.55,0.70)) F.push(['bad','1,80×2,00 雙人床放不進去','含床尾 0,70 m 通行']);
-    else if(r.long<4.20) F.push(['warn','衣櫃牆面不足','2,00 m 衣櫃 + 0,60 開門淨距會卡到床尾']);
+    if(r.area<12) F.push(['bad',`${r.area.toFixed(1)} m², a main bedroom under 12 m²`,'move the bearing wall east to win it back']);
+    if(r.short<2.80) F.push(['bad',`clear width ${r.short.toFixed(2)} m < 2,80 m`,'a 1,80 bed plus 0,75 / 0,55 either side will not fit']);
+    else if(r.short<3.10) F.push(['warn',`clear width ${r.short.toFixed(2)} m is tight`,'only the bare minimum either side of the bed; 3,10 m is comfortable']);
     return F;
   },
   bed_child:(r)=>{
     const F=[];
-    if(r.area<10) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，兒童房低於 10 m²`,'']);
-    if(r.short<2.40) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 2,40 m`,'單人床 0,90 + 書桌 0,70 + 通行 0,80']);
-    if(!fitsBed(r.w,r.d,0.90,2.00,0.70,0.10,0.70)) F.push(['bad','單人床 + 書桌配置不成立','']);
-    if(r.chimney) F.push(['warn','東北角有既有煙囪 0,51 × 0,56 m',
-      '已從面積扣除 0,28 m²；床頭或衣櫃要避開這支柱子']);
-    if(r.area>16 && r.short>3.2) F.push(['ok',`${r.area.toFixed(1)} m²，日後可一分為二`,'寬度足以再切一道輕隔間']);
+    if(r.area<10) F.push(['bad',`${r.area.toFixed(1)} m², a child's room under 10 m²`,'']);
+    if(r.short<2.40) F.push(['bad',`clear width ${r.short.toFixed(2)} m < 2,40 m`,'0,90 bed + 0,70 desk + 0,80 to walk past']);
+    if(r.chimney) F.push(['warn','existing chimney 0,51 × 0,56 m in the north-east corner',
+      '0,28 m² already deducted; keep the bed head and wardrobe clear of it']);
+    if(r.area>16 && r.short>3.2) F.push(['ok',`${r.area.toFixed(1)} m², could be split later`,'wide enough for one more stud partition']);
     return F;
   },
   living:(r)=>{
     const F=[];
-    if(r.area<22) F.push(['bad',`面積 ${r.area.toFixed(1)} m²，起居+廚房+餐廳低於 22 m²`,'三合一空間會擁擠']);
-    if(r.short<3.60) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 3,60 m`,'廚具 0,60 + 走道 1,20 + 餐桌 1,60 排不下']);
-    else if(r.short<4.00) F.push(['warn',`淨寬 ${r.short.toFixed(2)} m`,'廚房走道會壓到 1,20 m 下限']);
-    if(r.area>=26 && r.short>=4.4) F.push(['ok','可容納中島或六人餐桌','']);
+    if(r.area<22) F.push(['bad',`${r.area.toFixed(1)} m² for living, kitchen and dining together`,'under 22 m² the three uses collide']);
+    if(r.short<3.60) F.push(['bad',`clear width ${r.short.toFixed(2)} m < 3,60 m`,'0,60 units + 1,20 walkway + 1,60 table will not line up']);
+    else if(r.short<4.00) F.push(['warn',`clear width ${r.short.toFixed(2)} m`,'the kitchen walkway drops towards its 1,20 m floor']);
+    if(r.area>=26 && r.short>=4.4) F.push(['ok','room for an island or a table for six','']);
     return F;
   },
   hall:(r)=>{
     const F=[];
-    if(r.short<1.10) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 1,10 m`,'兩人交會與搬家具的最低值']);
-    else if(r.short<1.30) F.push(['warn',`淨寬 ${r.short.toFixed(2)} m`,'自住建議 ≥ 1,30 m，才放得下鞋櫃']);
-    if(r.area>7.5) F.push(['warn',`${r.area.toFixed(1)} m² 交通面積偏大`,'這是最值得回收的面積']);
+    if(r.short<1.10) F.push(['bad',`clear width ${r.short.toFixed(2)} m < 1,10 m`,'two people passing, and getting furniture in']);
+    else if(r.short<1.30) F.push(['warn',`clear width ${r.short.toFixed(2)} m`,'1,30 m leaves room for a shoe cupboard']);
+    if(r.area>7.5) F.push(['warn',`${r.area.toFixed(1)} m² of circulation`,'the easiest area in the flat to win back']);
     return F;
   },
   bath:(r)=>{
     const F=[];
-    if(r.area<5.5) F.push(['bad',`面積 ${r.area.toFixed(1)} m² 過小`,'浴缸+雙洗手台+馬桶需 ≥ 5,5 m²']);
-    if(r.short<1.75) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m < 1,75 m`,'浴缸 1,70 靠牆放不下']);
-    if(r.area>9.5) F.push(['warn',`${r.area.toFixed(1)} m²，以 96 m² 的戶型算偏大`,'切出儲藏室或還給臥室']);
-    if(r.area>=6.5 && r.area<=9.0) F.push(['ok','面積合宜，可放浴缸＋淋浴','']);
+    if(r.area<5.5) F.push(['bad',`${r.area.toFixed(1)} m² is too small`,'tub, two basins and a WC need 5,5 m²']);
+    if(r.short<1.75) F.push(['bad',`clear width ${r.short.toFixed(2)} m < 1,75 m`,'a 1,70 tub will not sit against the wall']);
+    if(r.area>9.5) F.push(['warn',`${r.area.toFixed(1)} m², generous for a 96 m² flat`,'take a store out of it, or give it back to the bedrooms']);
+    if(r.area>=6.5 && r.area<=9.0) F.push(['ok','well sized for a tub and a shower','']);
     return F;
   },
   store:(r)=>{
     const F=[];
-    if(r.area<1.5) F.push(['bad',`${r.area.toFixed(1)} m² 太小，不成儲藏室`,'']);
-    if(r.short<0.90) F.push(['bad',`淨寬 ${r.short.toFixed(2)} m，門進不去`,'']);
-    if(r.area>=2.0 && r.short>=1.00) F.push(['ok',`${r.area.toFixed(1)} m² 可放洗衣機＋層架`,'']);
+    if(r.area<1.5) F.push(['bad',`${r.area.toFixed(1)} m² is not a store`,'']);
+    if(r.short<0.90) F.push(['bad',`clear width ${r.short.toFixed(2)} m, the door will not open`,'']);
+    if(r.area>=2.0 && r.short>=1.00) F.push(['ok',`${r.area.toFixed(1)} m², fits a washing machine and shelving`,'']);
     return F;
   },
   sunroom:(r)=>{
     const F=[];
-    if(r.d<2.40) F.push(['warn',`進深 ${r.d.toFixed(2)} m`,'低於 2,40 m 就只剩走廊感']);
+    if(r.d<2.40) F.push(['warn',`${r.d.toFixed(2)} m deep`,'under 2,40 m it reads as a corridor']);
     return F;
   },
   balcony:(r)=>{
     const F=[];
-    if(r.d<1.50) F.push(['bad',`進深 ${r.d.toFixed(2)} m < 1,50 m`,'放不下桌椅']);
-    if(r.area<6) F.push(['warn',`實際 ${r.area.toFixed(1)} m²（計入面積 ${(r.area/2).toFixed(1)}）`,'四人用餐需 ≥ 6 m²']);
+    if(r.d<1.50) F.push(['bad',`${r.d.toFixed(2)} m deep < 1,50 m`,'no room for a table and chairs']);
+    if(r.area<6) F.push(['warn',`${r.area.toFixed(1)} m² actual (${(r.area/2).toFixed(1)} counted)`,'six m² for four people to eat']);
     return F;
   },
 };
-function check(rooms){
+function check(rooms, placed){
   const F=[];
   const host=rooms.find(r=>r.chimney);
-  if(!host) F.push({lv:'bad',room:'既有煙囪',msg:'中牆移動後煙囪落在牆體或玄關裡',
-    fix:'煙囪是既有磚砌管道，拆不掉也移不動 — 中牆最西只能到 3,88 m（等於幾乎不能西移）'});
-  else if(host.kind!=='bed_child') F.push({lv:'warn',room:'既有煙囪',
-    msg:`煙囪現在落在「${host.name}」`, fix:'原本在兒童房角落，換了位置要重新確認貼牆家具'});
+  if(!host) F.push({lv:'bad',room:'Existing chimney',msg:'a wall now runs through the chimney',
+    fix:'existing brick flue: it cannot be taken out or moved — the bearing wall stops at 3,88 m, so effectively it cannot go west at all'});
+  else if(host.kind!=='bed_child') F.push({lv:'warn',room:'Existing chimney',
+    msg:`the chimney now sits in ${host.de}`, fix:'it started in the corner of Kind; re-check anything standing against that wall'});
   for(const r of rooms){ const fn=RULES[r.kind]; if(!fn) continue;
-    for(const [lv,msg,fix] of fn(r)) F.push({lv,room:r.name,msg,fix}); }
+    for(const [lv,msg,fix] of fn(r)) F.push({lv,room:r.de,msg,fix}); }
+  for(const it of placed) for(const is of it.issues)
+    F.push({lv:is.lv, room:it.room.de, msg:`${it.n}: ${is.msg}`, fix:''});
+  for(const r of rooms){
+    const req=REQUIRED[r.kind]; if(!req) continue;
+    const have=new Set(placed.filter(p=>p.room.id===r.id && !p.issues.some(i=>i.lv==='bad')).map(p=>p.cat));
+    for(const c of req) if(!have.has(c))
+      F.push({lv:'warn', room:r.de, msg:`no ${CAT_LABEL[c]||c} placed without a clash`, fix:'add one, or move what is there until it clears'});
+  }
   const order={bad:0,warn:1,ok:2};
   return F.sort((a,b)=>order[a.lv]-order[b.lv]);
 }
 
-/* ---- cost model: order-of-magnitude, EUR ---- */
+/* ---- cost model: order of magnitude, EUR ---- */
 const COST = {
-  partition:{fix:0, per:380, label:'輕隔間拆改'},
-  bearing:{fix:6500, per:900, label:'承重牆 + 過樑'},
-  wet:{fix:2500, per:450, label:'排水管路改道'},
-  newpart:{fix:1200, per:380, label:'新增儲藏隔間'},
+  partition:{fix:0, per:380, label:'Stud partition, take down and rebuild'},
+  bearing:{fix:6500, per:900, label:'Bearing wall and lintel'},
+  wet:{fix:2500, per:450, label:'Re-routing the drainage'},
+  newpart:{fix:1200, per:380, label:'New store partition'},
 };
 function costs(){
   const L=[];
@@ -413,25 +630,56 @@ function costs(){
     const dm=Math.abs(a.p-BASE[id]); if(dm<0.005) continue;
     const run = a.d==='x' ? 10.3 : 5.5;                     // wall length affected, m
     const c = a.kind==='bearing' ? COST.bearing : COST.partition;
-    L.push({label:`${a.name} 移動 ${(dm*100).toFixed(0)} cm`, eur:c.fix + c.per*run});
+    L.push({label:`${a.name}, moved ${(dm*100).toFixed(0)} cm`, eur:c.fix + c.per*run});
     if(a.wet) L.push({label:COST.wet.label, eur:COST.wet.fix + COST.wet.per*run});
   }
   return L;
 }
 
-/* ---- score: transparent weights, tune them in the code ---- */
-function score(rooms,F){
+/* ---- score: five independent weights, stated in the code ---- */
+function score(rooms,F,placed){
   const get=id=>rooms.find(r=>r.id===id);
   const cl=(v,lo,hi)=>Math.max(0,Math.min(1,(v-lo)/(hi-lo)));
   const live=get('wohnen'), sl=get('schlafen'), kd=get('kind'), dl=get('diele'), bd=get('bad'), st=get('abstell');
   const prog = (cl(sl.area,11,15)+cl(kd.area,9,13)+cl(live.area,20,28)+cl(bd.area,5.5,7.5))/4;
-  const furn = 1 - Math.min(1, F.filter(x=>x.lv==='bad').length/5);
+  /* furniture is measured from the placement itself, so it no longer double
+     counts the area findings the way the old findings-derived version did */
+  let need=0, good=0;
+  for(const r of rooms){
+    const req=REQUIRED[r.kind]; if(!req) continue;
+    const have=new Set(placed.filter(p=>p.room.id===r.id && !p.issues.some(i=>i.lv==='bad')).map(p=>p.cat));
+    for(const c of req){ need++; if(have.has(c)) good++; }
+  }
+  const clashes=placed.filter(p=>p.issues.some(i=>i.lv==='bad')).length;
+  const furn = need ? Math.max(0, good/need - 0.12*clashes) : 0;
   const circ = 1 - cl(dl.area/(rooms.filter(r=>!['balkon','winter'].includes(r.id)).reduce((s,r)=>s+r.area,0)), 0.06, 0.12);
   const store = st ? cl(st.area,1.2,3.2) : 0;
   const money = 1 - Math.min(1, costs().reduce((s,c)=>s+c.eur,0)/20000);
-  const parts=[['面積達標',prog,.30],['家具可行',furn,.25],['交通效率',circ,.15],['收納',store,.10],['成本',money,.20]];
+  const parts=[['Programme',prog,.30],['Furniture',furn,.25],['Circulation',circ,.15],['Storage',store,.10],['Budget',money,.20]];
   return {total:Math.round(parts.reduce((s,[,v,w])=>s+v*w,0)*100), parts};
 }
+
+/* ============================================================
+   HISTORY
+   ============================================================ */
+const HIST={undo:[],redo:[]};
+const snapshot=()=>JSON.stringify({
+  ax:Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])),
+  storage, doors:DOORS, furn:FURN});
+function restore(s){
+  const o=JSON.parse(s);
+  for(const k in o.ax) if(AX[k]) AX[k].p=o.ax[k];
+  storage=o.storage; DOORS=o.doors; FURN=o.furn;
+  uidSeq=Math.max(1,...FURN.map(i=>i.uid||0))+1;
+}
+function push(pre){
+  if(pre===snapshot()) return;
+  HIST.undo.push(pre); if(HIST.undo.length>50) HIST.undo.shift();
+  HIST.redo.length=0;
+}
+const change=fn=>{ const pre=snapshot(); fn(); push(pre); update(); };
+function undo(){ if(!HIST.undo.length) return; const cur=snapshot(); restore(HIST.undo.pop()); HIST.redo.push(cur); update(); }
+function redo(){ if(!HIST.redo.length) return; const cur=snapshot(); restore(HIST.redo.pop()); HIST.undo.push(cur); update(); }
 
 /* ============================================================
    RENDER — SVG in centimetres, drawn the way a Bauplan is drawn.
@@ -440,68 +688,71 @@ const SVG='http://www.w3.org/2000/svg';
 const el=(n,a={})=>{const e=document.createElementNS(SVG,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
 const M=100; // m -> cm
 const PLAN_W=10.755, PLAN_H=14.05, PAD=1.45;
+/* the architect's own furniture symbols, lifted from the sheet's black strokes.
+   Reference only: it shows the original intent, at the original wall positions. */
+const GHOST='M445.8 1085.9L445.8 1079.1M445.8 1090.5L445.8 1085.9M534.2 1085.9L534.2 1079.1M534.2 1090.5L534.2 1085.9M455.9 1090.5L455.9 1159.1M534.2 1085.9L524.5 1085.9M524.5 1085.9L524.5 1090.5M534.2 1090.5L534.2 1085.9M455.9 1090.5L455.9 1085.9M455.9 1085.9L445.8 1085.9M445.8 1085.9L445.8 1090.5M534.2 1090.5L534.2 1085.9M534.2 1090.5L534.2 1085.9M534.2 1085.9L534.2 1079.1M445.8 1090.5L445.8 1085.9M445.8 1090.5L445.8 1085.9M445.8 1085.9L445.8 1079.1M385.7 949.5L397.9 949.5M380.6 949.5L385.7 949.5M385.7 1038.0L397.9 1038.0M380.6 1038.0L385.7 1038.0M385.7 792.9L397.9 792.9M380.6 792.9L385.7 792.9M385.7 704.4L397.9 704.4M380.6 704.4L385.7 704.4M380.6 959.7L312.0 959.7M385.7 1038.0L385.7 1027.9M385.7 1027.9L380.6 1027.9M380.6 1038.0L385.7 1038.0M380.6 959.7L385.7 959.7M385.7 959.7L385.7 949.5M385.7 949.5L380.6 949.5M380.6 1038.0L385.7 1038.0M380.6 1038.0L385.7 1038.0M385.7 1038.0L397.9 1038.0M380.6 949.5L385.7 949.5M380.6 949.5L385.7 949.5M385.7 949.5L397.9 949.5M380.6 782.7L312.0 782.7M385.7 704.4L385.7 714.2M385.7 714.2L380.6 714.2M380.6 704.4L385.7 704.4M380.6 782.7L385.7 782.7M385.7 782.7L385.7 792.9M385.7 792.9L380.6 792.9M380.6 704.4L385.7 704.4M380.6 704.4L385.7 704.4M385.7 704.4L397.9 704.4M380.6 792.9L385.7 792.9M380.6 792.9L385.7 792.9M385.7 792.9L397.9 792.9M584.2 857.7L584.2 869.1M328.5 926.3L328.5 916.1M328.5 926.3L379.3 926.3M369.6 916.1L338.7 916.1M369.6 880.1L369.6 916.1M328.5 870.4L328.5 880.1M338.7 880.1L369.6 880.1M328.5 880.1L328.5 916.1M338.7 916.1L338.7 880.1M432.2 1174.3L435.6 1174.3M417.8 1169.2L435.6 1169.2M432.2 1210.3L435.6 1210.3M417.8 1215.4L435.6 1215.4M417.8 1215.4L417.8 1169.2M425.0 1201.4L425.0 1183.2M425.0 1183.2C425.0 1178.1 428.4 1174.3 432.2 1174.3M432.2 1210.3C428.4 1210.3 425.0 1206.5 425.0 1201.4M448.7 1176.4C454.2 1186.2 454.2 1198.0 448.7 1208.2M444.1 1179.0C448.7 1187.5 448.7 1197.2 444.1 1205.7M444.1 1205.7C442.4 1208.6 439.4 1210.3 435.6 1210.3M448.7 1208.2C446.2 1212.4 441.1 1215.4 435.6 1215.4M435.6 1174.3C439.4 1174.3 442.4 1176.0 444.1 1179.0M435.6 1169.2C441.1 1169.2 446.2 1172.2 448.7 1176.4M435.6 1192.1C435.6 1193.4 434.8 1194.2 433.9 1194.2M433.9 1194.2C433.1 1194.2 432.2 1193.4 432.2 1192.1M432.2 1192.1C432.2 1191.3 433.1 1190.4 433.9 1190.4M433.9 1190.4C434.8 1190.4 435.6 1191.3 435.6 1192.1M417.8 1304.7L450.8 1304.7M430.1 1298.8L450.8 1298.8M430.1 1273.8L450.8 1273.8M430.1 1273.8L430.1 1298.8M417.8 1304.7L417.8 1267.9M417.8 1267.9L450.8 1267.9M450.8 1267.9C455.9 1267.9 461.0 1270.4 464.0 1274.2M464.0 1298.4C461.0 1302.6 455.9 1304.7 450.8 1304.7M464.0 1274.2C469.5 1281.4 469.5 1291.2 464.0 1298.4M450.8 1273.8C454.2 1273.8 457.2 1275.5 459.3 1278.0M459.3 1278.0C462.7 1283.1 462.7 1289.9 459.3 1294.6M459.3 1294.6C457.2 1297.5 454.2 1298.8 450.8 1298.8M433.5 1286.5C433.5 1287.4 433.1 1287.8 432.2 1287.8M432.2 1287.8C431.4 1287.8 430.5 1287.4 430.5 1286.5M430.5 1286.5C430.5 1285.7 431.4 1284.8 432.2 1284.8M432.2 1284.8C433.1 1284.8 433.5 1285.7 433.5 1286.5M795.9 1200.6L720.9 1200.6M720.9 1200.6L720.9 1380.5M726.9 1343.2L726.9 1221.7M789.9 1343.2L789.9 1221.7M774.7 1206.5L741.7 1206.5M789.9 1342.8C789.9 1360.6 775.5 1374.6 758.2 1374.6M758.2 1374.6C740.8 1374.6 726.9 1360.6 726.9 1343.2M726.9 1221.7C726.9 1213.3 733.6 1206.5 741.7 1206.5M774.7 1206.5C783.2 1206.5 789.9 1213.3 789.9 1221.7M760.7 1226.0C760.7 1227.7 759.9 1228.5 758.2 1228.5M758.2 1228.5C756.9 1228.5 755.6 1227.7 755.6 1226.0M755.6 1226.0C755.6 1224.7 756.9 1223.9 758.2 1223.9M758.2 1223.9C759.9 1223.9 760.7 1224.7 760.7 1226.0M759.9 1226.0C759.9 1226.8 759.0 1227.7 758.2 1227.7M758.2 1227.7C757.3 1227.7 756.9 1226.8 756.9 1226.0M756.9 1226.0C756.9 1225.1 757.3 1224.7 758.2 1224.7M758.2 1224.7C759.0 1224.7 759.9 1225.1 759.9 1226.0M735.7 1090.5L735.7 1150.6M735.7 1150.6L795.9 1150.6M782.7 1120.6C782.7 1130.3 775.1 1137.9 765.8 1137.9M765.8 1137.9C756.5 1137.9 748.4 1130.3 748.4 1120.6M748.4 1120.6C748.4 1111.3 756.5 1103.6 765.8 1103.6M765.8 1103.6C775.1 1103.6 782.7 1111.3 782.7 1120.6M778.9 1120.6C778.9 1128.2 773.0 1134.1 765.8 1134.1M765.8 1134.1C758.6 1134.1 752.3 1128.2 752.3 1120.6M752.3 1120.6C752.3 1113.4 758.6 1107.4 765.8 1107.4M765.8 1107.4C773.0 1107.4 778.9 1113.4 778.9 1120.6M675.6 1090.5L675.6 1150.6M675.6 1150.6L735.7 1150.6M735.7 1150.6L735.7 1090.5M723.0 1120.6C723.0 1130.3 715.4 1137.9 705.7 1137.9M705.7 1137.9C696.4 1137.9 688.8 1130.3 688.8 1120.6M688.8 1120.6C688.8 1111.3 696.4 1103.6 705.7 1103.6M705.7 1103.6C715.4 1103.6 723.0 1111.3 723.0 1120.6M719.2 1120.6C719.2 1128.2 713.3 1134.1 705.7 1134.1M705.7 1134.1C698.5 1134.1 692.6 1128.2 692.6 1120.6M692.6 1120.6C692.6 1113.4 698.5 1107.4 705.7 1107.4M705.7 1107.4C713.3 1107.4 719.2 1113.4 719.2 1120.6M817.9 798.0L758.2 798.0M758.2 798.0L758.2 857.7M758.2 857.7L758.2 798.0M758.2 798.0L817.9 798.0M781.5 839.5C781.5 843.7 778.1 847.1 773.4 847.1M773.4 847.1C769.2 847.1 765.8 843.7 765.8 839.5M765.8 839.5C765.8 834.8 769.2 831.4 773.4 831.4M773.4 831.4C778.1 831.4 781.5 834.8 781.5 839.5M780.6 839.5C780.6 843.3 777.7 846.2 773.4 846.2M773.4 846.2C769.6 846.2 766.7 843.3 766.7 839.5M766.7 839.5C766.7 835.2 769.6 832.3 773.4 832.3M773.4 832.3C777.7 832.3 780.6 835.2 780.6 839.5M779.8 814.1C779.8 818.3 776.4 821.3 772.6 821.3M772.6 821.3C768.8 821.3 765.8 818.3 765.8 814.1M765.8 814.1C765.8 810.3 768.8 807.3 772.6 807.3M772.6 807.3C776.4 807.3 779.8 810.3 779.8 814.1M778.5 814.1C778.5 817.5 776.0 820.4 772.6 820.4M772.6 820.4C769.2 820.4 766.7 817.5 766.7 814.1M766.7 814.1C766.7 811.1 769.2 808.1 772.6 808.1M772.6 808.1C776.0 808.1 778.5 811.1 778.5 814.1M810.3 815.3C810.3 820.4 806.0 824.2 800.9 824.2M800.9 824.2C796.3 824.2 792.1 820.4 792.1 815.3M792.1 815.3C792.1 810.3 796.3 806.5 800.9 806.5M800.9 806.5C806.0 806.5 810.3 810.3 810.3 815.3M809.0 815.3C809.0 819.6 805.6 823.4 800.9 823.4M800.9 823.4C796.7 823.4 792.9 819.6 792.9 815.3M792.9 815.3C792.9 810.7 796.7 807.3 800.9 807.3M800.9 807.3C805.6 807.3 809.0 810.7 809.0 815.3M809.0 840.3C809.0 844.1 806.0 847.1 802.2 847.1M802.2 847.1C798.4 847.1 795.0 844.1 795.0 840.3M795.0 840.3C795.0 836.5 798.4 833.1 802.2 833.1M802.2 833.1C806.0 833.1 809.0 836.5 809.0 840.3M808.1 840.3C808.1 843.7 805.6 846.2 802.2 846.2M802.2 846.2C798.8 846.2 796.3 843.7 796.3 840.3M796.3 840.3C796.3 836.9 798.8 834.4 802.2 834.4M802.2 834.4C805.6 834.4 808.1 836.9 808.1 840.3M681.6 857.7L681.6 798.0M681.6 798.0L621.9 798.0M621.9 798.0L621.9 857.7M681.6 857.7L681.6 798.0M681.6 798.0L621.9 798.0M621.9 798.0L621.9 857.7M889.8 738.3L889.8 660.8M889.8 660.8L890.3 659.6M890.3 659.6L892.0 659.1M892.0 659.1L943.6 659.1M943.6 659.1L945.3 659.6M945.3 739.6L943.6 740.4M943.6 740.4L892.0 740.4M892.0 740.4L890.3 739.6M890.3 739.6L889.8 738.3M894.9 733.2L894.9 703.2M897.0 701.0L933.9 701.0M935.6 703.2L935.6 733.2M933.9 735.3L897.0 735.3M894.9 733.2L895.3 733.2M894.9 696.0L894.9 665.9M897.0 664.2L933.9 664.2M935.6 665.9L935.6 696.0M933.9 698.1L897.0 698.1M894.9 696.0L894.9 696.4M894.9 703.2C894.9 701.9 895.8 701.0 897.0 701.0M933.9 701.0C934.7 701.0 935.6 701.9 935.6 703.2M935.6 733.2C935.6 734.5 934.7 735.3 933.9 735.3M897.0 735.3C895.8 735.3 894.9 734.5 894.9 733.2M894.9 665.9C894.9 665.1 895.8 664.2 897.0 664.2M933.9 664.2C934.7 664.2 935.6 665.1 935.6 665.9M935.6 696.0C935.6 697.2 934.7 698.1 933.9 698.1M897.0 698.1C895.8 698.1 894.9 697.2 894.9 696.0M930.9 709.1C930.9 710.8 929.6 712.5 927.9 712.5M927.9 712.5C926.2 712.5 925.0 710.8 925.0 709.1M925.0 709.1C925.0 707.8 926.2 706.1 927.9 706.1M927.9 706.1C929.6 706.1 930.9 707.8 930.9 709.1M930.9 690.0C930.9 691.7 929.6 693.0 927.9 693.0M927.9 693.0C926.2 693.0 925.0 691.7 925.0 690.0M925.0 690.0C925.0 688.3 926.2 687.1 927.9 687.1M927.9 687.1C929.6 687.1 930.9 688.3 930.9 690.0M773.8 643.9L773.8 480.5M793.7 480.5L713.7 480.5M773.8 589.3L713.7 589.3M773.8 535.1L713.7 535.1M713.7 657.0L713.7 467.4M713.7 467.4L793.7 467.4M793.7 657.0L713.7 657.0M793.7 643.9L713.7 643.9M676.9 702.7L513.9 702.7M513.9 722.6L513.9 642.6M622.7 702.7L622.7 642.6M568.1 702.7L568.1 642.6M690.5 642.6L500.4 642.6M500.4 642.6L500.4 722.6M500.4 722.6L690.5 722.6M690.5 722.6L690.5 642.6M676.9 722.6L676.9 642.6M607.1 530.0L668.9 530.0M668.9 530.0L668.9 618.5M668.9 618.5L607.1 618.5M607.1 618.5L607.1 530.0M443.2 560.5L443.2 514.4M443.2 514.4L431.4 514.4M431.4 514.4L431.4 560.5M431.4 560.5L443.2 560.5M439.8 583.8L439.8 491.1M439.8 491.1L437.3 491.1M437.3 491.1L434.8 514.4M434.8 514.4L434.8 560.5M434.8 560.5L437.3 583.8M437.3 583.8L439.8 583.8M439.0 497.4L439.0 503.8M439.0 503.8L438.1 503.8M438.1 503.8L438.1 497.4M438.1 497.4L439.0 497.4M439.0 505.0L439.0 511.4M439.0 511.4L438.1 511.4M438.1 511.4L438.1 505.0M438.1 505.0L439.0 505.0M439.0 512.7L439.0 516.0M439.0 516.0L438.1 516.0M438.1 516.0L438.1 512.7M438.1 512.7L439.0 512.7M437.3 583.8L437.3 491.1M328.5 870.4L328.5 926.3M328.5 926.3L379.3 926.3M338.7 916.1L369.6 880.1M905.9 739.1L906.4 739.1M892.0 739.1L850.0 739.1M54.6 739.1L55.0 739.1M68.6 739.1L110.5 739.1M849.2 964.4L849.2 921.6M849.2 964.4L825.9 942.8M849.2 921.6L825.9 942.8M417.8 1380.5L417.8 1090.5M621.9 857.7L621.9 798.0M621.9 798.0L885.6 798.0M885.6 798.0L885.6 551.6M885.6 551.6L945.7 551.6M328.5 870.4L328.5 869.1M379.3 926.3L380.6 926.3M416.6 693.0L463.1 693.0M463.1 693.0L463.1 420.8M463.1 420.8L416.6 420.8M800.9 892.0L820.0 892.0M795.9 892.0L800.9 892.0M800.9 992.7L820.0 992.7M795.9 992.7L800.9 992.7';
 
-/* wall runs: [axis, fromAxis, fromSign, toAxis, toSign] */
+/* wall runs: [axis, fromAxis, fromSign, toAxis, toSign, layer, onlyIf] */
 const WALLS=[
   ['xwext','ynext','-','yexts','+','neu'], ['xeext','ynext','-','yexts','+','neu'],
   ['ynext','xwext','-','xbw','+','neu'],   ['yexts','xwext','-','xeext','+','neu'],
   ['xbw','ynext','-','yexts','+','neu'],
   ['xw','yn','-','ys','+','bestand'],      ['yn','xw','-','xe','+','bestand'],
   ['xe','yn','-','y1','+','bestand'],
-  ['xe2','y1','-','ys','+','bestand'],  ['ys','xw','-','xtrh','+','bestand'],
+  ['xe2','y1','-','ys','+','bestand'],     ['ys','xw','-','xtrh','+','bestand'],
   ['xtrh','y1','-','ys','+','neu'],
   ['xmid','yn','-','ys','+','bestand'],
   ['y1','xw','-','xmid','-','bestand'],    ['y1','xmid','+','xe','+','bestand'],
   ['y2','xmid','+','xe2','+','bestand'],
   ['xst','y2','-','ys','+','neu','storage'],
 ];
-/* openings punched out of a wall run: [axis, centre along the run (m), width] */
-const OPEN=[
-  ['xmid', 7.487, .885,'door'], ['xmid', 9.938, .885,'door'],   // gaps 7,044-7,929 / 9,495-10,380
-  ['y2',   4.900, .884,'door'], ['y1',   4.911, 1.863,'open'],  // 4,458-5,342 / 3,979-5,842
-  ['xe2',  9.424, 1.007,'entry'],                               // 8,920-9,927  Wohnungstür
-  ['yn',   5.683, 1.740,'open'], ['yexts', 5.683, 1.740,'open'],// 4,813-6,553  to the Wintergarten
-  ['xw',   5.999, 1.998,'win'], ['xw', 11.557, 1.600,'win'],    // 5,000-6,998 / 10,757-12,357
-  ['ys',   2.201, 1.600,'win'], ['ys',  6.050, 1.601,'win'],    // 1,401-3,001 / 5,249-6,850
-  ['xe',   4.560, 1.499,'win'], ['xe',  7.148, 1.596,'win'],    // 3,810-5,309 / 6,350-7,946
-];
-function openingsOn(ax){ return OPEN.filter(o=>o[0]===ax); }
+let sel=null;   // uid of the selected furniture item
 
-function draw(){
+function draw(rooms, placed){
   const svg=document.getElementById('plan');
   svg.textContent='';
-  const vb=[-PAD*M, -PAD*M, (PLAN_W+PAD*2)*M, (PLAN_H+PAD*2.05)*M];
-  svg.setAttribute('viewBox', vb.join(' '));
+  svg.setAttribute('viewBox', [-PAD*M, -PAD*M, (PLAN_W+PAD*2)*M, (PLAN_H+PAD*2.05)*M].join(' '));
   svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   const defs=el('defs');
   defs.innerHTML=`<pattern id="hatch" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="9" stroke="var(--bestand)" stroke-width="2.2"/></pattern>`;
+      <line x1="0" y1="0" x2="0" y2="9" stroke="var(--bestand)" stroke-width="2.2"/></pattern>
+    <pattern id="clr" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="var(--faint)" stroke-width="1.1"/></pattern>
+    <pattern id="clrbad" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="var(--bad)" stroke-width="1.4"/></pattern>`;
   svg.appendChild(defs);
   const g=el('g'); svg.appendChild(g);
-  const rooms=geom();
 
-  // --- locked stair core: one block from y1 down, outside the apartment ---
+  // --- locked stair core: one block from y1 down, outside the flat ---
   const TX=f('xe2','+'), TY=f('y1','+'), TW=f('xtrh','-')-TX, TH=f('ys','-')-TY;
   g.appendChild(el('rect',{x:TX*M, y:TY*M, width:TW*M, height:TH*M, fill:'url(#hatch)', opacity:.5}));
   g.appendChild(el('rect',{x:TX*M, y:TY*M, width:TW*M, height:TH*M,
     fill:'none', stroke:'var(--neu)', 'stroke-width':2, 'stroke-dasharray':'10 6'}));
-  // the existing east wall is demolished across the Diele band - that is how the
-  // new stairwell reaches the flat. Drawn on the Abbruch layer, as on the sheet.
   g.appendChild(el('rect',{x:f('xe','-')*M, y:f('y1','+')*M,
     width:(f('xe','+')-f('xe','-'))*M, height:(f('y2','-')-f('y1','+'))*M,
     fill:'none', stroke:'var(--abbruch)','stroke-width':3,'stroke-dasharray':'12 7'}));
   const tl=el('text',{x:(TX+.34)*M, y:(TY+.62)*M, fill:'var(--muted)','font-size':30,'font-weight':600});
   tl.textContent='TRH'; g.appendChild(tl);
   const tl2=el('text',{x:(TX+.34)*M, y:(TY+1.05)*M, fill:'var(--faint)','font-size':22});
-  tl2.textContent='公共樓梯'; g.appendChild(tl2);
+  tl2.textContent='common stair'; g.appendChild(tl2);
   const tl3=el('text',{x:(TX+.34)*M, y:(TY+1.45)*M, fill:'var(--faint)','font-size':20});
-  tl3.textContent='不可調整'; g.appendChild(tl3);
+  tl3.textContent='locked'; g.appendChild(tl3);
 
   // --- rooms ---
   for(const r of rooms){
     const hi = r.kind==='bath'||r.kind==='store';
     g.appendChild(el('rect',{x:r.x0*M, y:r.y0*M, width:r.w*M, height:r.d*M,
       fill: hi?'var(--room-hi)':'var(--room)'}));
+  }
+  // --- the architect's own furniture, as a reference underlay ---
+  if(showGhost){
+    const moved=Object.keys(BASE).some(k=>Math.abs(AX[k].p-BASE[k])>0.005);
+    g.appendChild(el('path',{d:GHOST, fill:'none', stroke:'var(--faint)',
+      'stroke-width':1.3, opacity:moved?.20:.45}));
+    if(moved){
+      const t=el('text',{x:(f('xmid','+')+.15)*M, y:(f('yn','+')+.42)*M, 'font-size':19, fill:'var(--faint)'});
+      t.textContent='sheet furniture — walls have since moved'; g.appendChild(t);
+    }
   }
   // --- Wintergarten glazing (no filled wall on the sheet: it is a glass front) ---
   for(const dx of [-0.03,0.03]){
@@ -513,69 +764,111 @@ function draw(){
   g.appendChild(el('rect',{x:CHIMNEY.x0*M, y:CHIMNEY.y0*M,
     width:(CHIMNEY.x1-CHIMNEY.x0)*M, height:(CHIMNEY.y1-CHIMNEY.y0)*M,
     fill:'url(#hatch)', stroke:'var(--bestand)','stroke-width':1.5}));
-  // --- walls (with openings punched) ---
+
+  // --- furniture: clearance zones first, then the pieces themselves ---
+  if(showClear) for(const it of placed){
+    const c=clearOf(it); if(!(c.n||c.s||c.e||c.w)) continue;
+    const q=grow(it,c), R=it.room, bad=it.issues.some(i=>i.lv==='bad');
+    const z={x0:Math.max(q.x0,R.x0), y0:Math.max(q.y0,R.y0),
+             x1:Math.min(q.x1,R.x1), y1:Math.min(q.y1,R.y1)};
+    if(z.x1<=z.x0||z.y1<=z.y0) continue;
+    g.appendChild(el('rect',{x:z.x0*M, y:z.y0*M, width:(z.x1-z.x0)*M, height:(z.y1-z.y0)*M,
+      fill:bad?'url(#clrbad)':'url(#clr)', opacity:bad?.5:.32,
+      stroke:bad?'var(--bad)':'var(--faint)','stroke-width':1,'stroke-dasharray':'6 5'}));
+  }
+  for(const it of placed){
+    const bad=it.issues.some(i=>i.lv==='bad'), warn=it.issues.length&&!bad;
+    const stroke=bad?'var(--bad)':warn?'var(--warn)':'var(--ink)';
+    const grp=el('g',{'data-furn':it.uid, style:'cursor:move'});
+    grp.appendChild(el('rect',{x:it.x0*M, y:it.y0*M, width:it.W*M, height:it.D*M,
+      fill:'var(--panel)', stroke, 'stroke-width':it.uid===sel?2.6:1.6, opacity:.96}));
+    if(it.cat==='bed'){   // a pillow line, so a bed reads as a bed
+      const m=DIRMAP[it.rot].back, k=0.22;
+      const L = m==='n'?{x1:it.x0,y1:it.y0+k,x2:it.x1,y2:it.y0+k}
+              : m==='s'?{x1:it.x0,y1:it.y1-k,x2:it.x1,y2:it.y1-k}
+              : m==='w'?{x1:it.x0+k,y1:it.y0,x2:it.x0+k,y2:it.y1}
+              :         {x1:it.x1-k,y1:it.y0,x2:it.x1-k,y2:it.y1};
+      grp.appendChild(el('line',{x1:L.x1*M,y1:L.y1*M,x2:L.x2*M,y2:L.y2*M, stroke, 'stroke-width':1.2, opacity:.7}));
+    }
+    if(Math.max(it.W,it.D)>0.75){
+      const cxm=(it.x0+it.x1)/2*M, cym=(it.y0+it.y1)/2*M, vert=it.W<it.D&&it.W<1.0;
+      const t=el('text',{x:cxm,y:cym+6,'text-anchor':'middle','font-size':18, fill:stroke, opacity:.85});
+      if(vert) t.setAttribute('transform',`rotate(-90 ${cxm} ${cym})`);
+      t.textContent=it.n.split(' ').slice(0,2).join(' ');
+      grp.appendChild(t);
+    }
+    g.appendChild(grp);
+  }
+
+  // --- walls, with openings punched ---
   for(const w of WALLS){
     const [ax,fa,fs,ta,ts,kindC,opt]=w;
     if(opt==='storage' && !storage) continue;
     const a=AX[ax], p=a.p, t=a.t;
     const s0=f(fa,fs), s1=f(ta,ts);
-    const segs=[[s0,s1]];
-    for(const o of openingsOn(ax)){
-      const c=o[1], hw=o[2]/2;
+    let segs=[[s0,s1]];
+    for(const o of doorsOn(ax)){
+      const c=o.pos, hw=o.w/2;
       for(let i=segs.length-1;i>=0;i--){
         const [b,e]=segs[i];
-        if(c-hw>b && c+hw<e){ segs.splice(i,1,[b,c-hw],[c+hw,e]); }
+        if(c-hw>b && c+hw<e) segs.splice(i,1,[b,c-hw],[c+hw,e]);
       }
     }
     const fill = kindC==='neu' ? 'var(--neu)' : 'var(--bestand-fill)';
     const strk = kindC==='neu' ? 'var(--neu)' : 'var(--bestand)';
     for(const [b,e] of segs){
       if(e-b<0.005) continue;
-      const R = a.d==='x'
-        ? {x:(p-t/2)*M, y:b*M, width:t*M, height:(e-b)*M}
-        : {x:b*M, y:(p-t/2)*M, width:(e-b)*M, height:t*M};
+      const R = a.d==='x' ? {x:(p-t/2)*M, y:b*M, width:t*M, height:(e-b)*M}
+                          : {x:b*M, y:(p-t/2)*M, width:(e-b)*M, height:t*M};
       g.appendChild(el('rect',{...R, fill, stroke:strk, 'stroke-width':1.5}));
     }
-    // opening jambs + door swing
-    for(const o of openingsOn(ax)){
-      if(o[1]<s0||o[1]>s1) continue;
-      const c=o[1], hw=o[2]/2, kind=o[3];
-      if(kind==='win'){
-        const R = a.d==='x' ? {x:(p-t/6)*M,y:(c-hw)*M,width:(t/3)*M,height:o[2]*M}
-                            : {x:(c-hw)*M,y:(p-t/6)*M,width:o[2]*M,height:(t/3)*M};
+    for(const o of doorsOn(ax)){
+      if(o.pos<s0||o.pos>s1) continue;
+      const c=o.pos, hw=o.w/2;
+      if(o.kind==='win'){
+        const R = a.d==='x' ? {x:(p-t/6)*M,y:(c-hw)*M,width:(t/3)*M,height:o.w*M}
+                            : {x:(c-hw)*M,y:(p-t/6)*M,width:o.w*M,height:(t/3)*M};
         g.appendChild(el('rect',{...R, fill:'var(--panel)', stroke:'var(--bestand)','stroke-width':1.5}));
-      } else if(kind!=='open'){
-        const d=el('path',{fill:'none', stroke:kind==='entry'?'var(--neu)':'var(--bestand)', 'stroke-width':1.6, opacity:.8});
-        const r0=o[2]*M;
-        // the flat's front door swings into the hall, i.e. west, not into the stairwell
-        const west = kind==='entry';
-        if(a.d==='x') d.setAttribute('d', west
-          ? `M ${p*M} ${(c-hw)*M} a ${r0} ${r0} 0 0 0 ${-r0} ${r0}`
-          : `M ${p*M} ${(c-hw)*M} a ${r0} ${r0} 0 0 1 ${r0} ${r0}`);
-        else          d.setAttribute('d',`M ${(c-hw)*M} ${p*M} a ${r0} ${r0} 0 0 0 ${r0} ${r0}`);
-        g.appendChild(d);
+      } else if(o.kind!=='open'){
+        const col=o.kind==='entry'?'var(--neu)':'var(--bestand)';
+        const hg = o.hinge==='a' ? c-hw : c+hw;
+        const tip= o.hinge==='a' ? hg+o.w : hg-o.w;
+        const off= p + (o.swing==='+' ? o.w : -o.w);
+        const P=(u,v)=> a.d==='x' ? `${v*M} ${u*M}` : `${u*M} ${v*M}`;
+        const grp=el('g',{'data-door':o.id, style:o.move?'cursor:grab':''});
+        const arc=el('path',{fill:'none', stroke:col,'stroke-width':1.6, opacity:.85});
+        const sweep=((o.hinge==='a')!==(o.swing==='+'))!==(a.d==='x') ? 1 : 0;
+        arc.setAttribute('d',`M ${P(hg+ (o.hinge==='a'? o.w:-o.w),p)} A ${o.w*M} ${o.w*M} 0 0 ${sweep} ${P(hg,off)}`);
+        grp.appendChild(arc);
+        grp.appendChild(el('line',{...(a.d==='x'
+          ? {x1:p*M,y1:hg*M,x2:off*M,y2:hg*M} : {x1:hg*M,y1:p*M,x2:hg*M,y2:off*M}),
+          stroke:col,'stroke-width':2.2}));
+        if(o.move){
+          const hx = a.d==='x' ? p*M : c*M, hy = a.d==='x' ? c*M : p*M;
+          grp.appendChild(el('circle',{cx:hx, cy:hy, r:11, fill:col, opacity:.85}));
+          grp.appendChild(el('circle',{cx:hx, cy:hy, r:4.5, fill:'var(--panel)'}));
+        }
+        g.appendChild(grp);
       }
     }
   }
-  // --- room labels ---
+  // --- room labels, with a halo so furniture cannot swallow them ---
   for(const r of rooms){
-    const cx=(r.x0+r.x1)/2*M, cy=(r.y0+r.y1)/2*M;
-    const narrow = r.w<1.60;
-    const rot = narrow ? `rotate(-90 ${cx} ${cy})` : null;
-    const t1=el('text',{x:cx,y:cy-10,'text-anchor':'middle','font-size':26,'font-weight':600,fill:'var(--ink)'});
+    const cxm=(r.x0+r.x1)/2*M, cym=(r.y0+r.y1)/2*M;
+    const narrow = r.w<1.60, rot = narrow ? `rotate(-90 ${cxm} ${cym})` : null;
+    const halo={'paint-order':'stroke', stroke:'var(--room)','stroke-width':7,'stroke-linejoin':'round'};
+    const t1=el('text',{x:cxm,y:cym-10,'text-anchor':'middle','font-size':narrow?21:26,'font-weight':600,fill:'var(--ink)',...halo});
     if(rot) t1.setAttribute('transform',rot);
     t1.textContent=r.de; g.appendChild(t1);
-    const shown = (r.factor||1)*(rawMode? r.raw : r.area);
-    const t2=el('text',{x:cx,y:cy+22,'text-anchor':'middle','font-size':25,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace'});
+    const shown=(r.factor||1)*(rawMode? r.raw : r.area);
+    const t2=el('text',{x:cxm,y:cym+22,'text-anchor':'middle','font-size':narrow?20:25,fill:'var(--muted)','font-family':'IBM Plex Mono, monospace',...halo});
     if(rot) t2.setAttribute('transform',rot);
     t2.textContent=`${shown.toFixed(2).replace('.',',')} m²${r.factor?' ½':''}`; g.appendChild(t2);
     if(!narrow){
-      const t3=el('text',{x:cx,y:cy+50,'text-anchor':'middle','font-size':20,fill:'var(--faint)','font-family':'IBM Plex Mono, monospace'});
+      const t3=el('text',{x:cxm,y:cym+50,'text-anchor':'middle','font-size':20,fill:'var(--faint)','font-family':'IBM Plex Mono, monospace',...halo});
       t3.textContent=`${dim(r.w)} × ${dim(r.d)}`; g.appendChild(t3);
     }
-    if(narrow){ t1.setAttribute('font-size',21); t2.setAttribute('font-size',20); }
   }
-  // --- dimension chains ---
   chain(g,'x', PLAN_H+0.62, ['xw','xmid','xe2','xtrh']);
   chain(g,'y', -0.62, ['yn','y1','y2','ys']);
   // --- draggable axis handles ---
@@ -585,9 +878,8 @@ function draw(){
     if(a.opt==='storage' && !storage) continue;
     const off = a.d==='x' ? -30-42*(hi++%2) : -30-42*(hj++%2);
     const grp=el('g',{class:a.d==='x'?'grab':'grab-v','data-ax':id});
-    const L = a.d==='x'
-      ? {x1:a.p*M,y1:off,x2:a.p*M,y2:(PLAN_H+.2)*M}
-      : {x1:off,y1:a.p*M,x2:(PLAN_W+.2)*M,y2:a.p*M};
+    const L = a.d==='x' ? {x1:a.p*M,y1:off,x2:a.p*M,y2:(PLAN_H+.2)*M}
+                        : {x1:off,y1:a.p*M,x2:(PLAN_W+.2)*M,y2:a.p*M};
     grp.appendChild(el('line',{...L, stroke:'var(--neu)','stroke-width':2,'stroke-dasharray':'14 8', opacity:.55}));
     grp.appendChild(el('line',{...L, stroke:'transparent','stroke-width':34}));
     const hx = a.d==='x' ? a.p*M : off, hy = a.d==='x' ? off : a.p*M;
@@ -595,18 +887,18 @@ function draw(){
     grp.appendChild(el('circle',{cx:hx, cy:hy, r:6, fill:'var(--panel)'}));
     g.appendChild(grp);
   }
-  wireDrag(svg);
+  wire(svg);
 }
 /* German construction-drawing convention: clear dimensions with each wall
    thickness broken out as its own segment. Sub-metre values are written in
-   centimetres, half centimetres as a superscript 5 (11,5 cm -> 11\u2075). */
+   centimetres, half centimetres as a superscript 5 (11,5 cm -> 11⁵). */
 function dim(v){
   const cm=Math.round(v*1000)/10, whole=Math.floor(cm+1e-6);
   const half=Math.abs(cm-whole-0.5)<0.06 || Math.abs(cm-whole-(-0.5))<0.06;
   const w=half?Math.floor(cm):Math.round(cm);
-  if(v<1) return w+(half?'\u2075':'');
+  if(v<1) return w+(half?'⁵':'');
   const m=Math.floor(w/100), c=w-m*100;
-  return m+','+String(c).padStart(2,'0')+(half?'\u2075':'');
+  return m+','+String(c).padStart(2,'0')+(half?'⁵':'');
 }
 function chain(g,dir,at,ids){
   const pts=[]; for(const id of ids){ pts.push(f(id,'-'), f(id,'+')); }
@@ -614,16 +906,14 @@ function chain(g,dir,at,ids){
   const line = dir==='x' ? {x1:pts[0]*M,y1:y0,x2:pts.at(-1)*M,y2:y0}
                          : {x1:y0,y1:pts[0]*M,x2:y0,y2:pts.at(-1)*M};
   g.appendChild(el('line',{...line, stroke:'var(--faint)','stroke-width':1.5}));
-  for(const p of pts){                                    // 45 degree tick marks
+  for(const p of pts){
     const tk = dir==='x' ? {x1:p*M-9,y1:y0+9,x2:p*M+9,y2:y0-9}
                          : {x1:y0+9,y1:p*M-9,x2:y0-9,y2:p*M+9};
     g.appendChild(el('line',{...tk, stroke:'var(--faint)','stroke-width':1.8}));
   }
   for(let i=0;i<pts.length-1;i++){
     const len=pts[i+1]-pts[i]; if(len<0.02) continue;
-    const mid=(pts[i]+pts[i+1])/2;
-    const isWall = i%2===0;                               // segments alternate wall / clear
-    const tight = len<0.62;
+    const mid=(pts[i]+pts[i+1])/2, isWall=i%2===0, tight=len<0.62;
     const t=el('text',{'text-anchor':'middle','font-size':tight?19:24,
       fill:isWall?'var(--faint)':'var(--muted)','font-family':'IBM Plex Mono, monospace'});
     const off = tight ? (dir==='x'?-40:-36) : (dir==='x'?-14:-10);
@@ -637,175 +927,312 @@ function chain(g,dir,at,ids){
     t.textContent=dim(len); g.appendChild(t);
   }
 }
-/* ---- drag ---- */
-let drag=null;
-function wireDrag(svg){
-  svg.querySelectorAll('[data-ax]').forEach(grp=>{
-    grp.addEventListener('pointerdown',e=>{ drag=grp.dataset.ax; e.preventDefault(); });
-  });
-}
-(function(){
-  const stage=document.getElementById('stage');
-  stage.addEventListener('pointermove',e=>{
-    if(!drag) return;
-    const svg=document.getElementById('plan');
-    const pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
-    const p=pt.matrixTransform(svg.getScreenCTM().inverse());
-    setAxis(drag, (AX[drag].d==='x'?p.x:p.y)/M);
-  });
-  const end=()=>{ drag=null; };
-  stage.addEventListener('pointerup',end);
-  stage.addEventListener('pointerleave',end);
-  stage.addEventListener('pointercancel',end);
-})();
-/* limits keep every touching room above its hard minimum */
+
+/* ============================================================
+   INTERACTION
+   ============================================================ */
 const LIMIT={ xmid:[3.10,5.30], xbw:[2.80,6.60], y1:[7.40,10.10], y2:[9.90,12.10], xst:[4.60,6.40] };
+const MIN_STORE=1.00, MIN_BATH=1.80;
 function setAxis(id,v){
   const [lo,hi]=LIMIT[id]||[0,99];
   AX[id].p = Math.round(Math.max(lo,Math.min(hi,v))*200)/200;   // snap to 0,5 cm
   reconcile(id);
-  update();
 }
 /* Rooms that share a wall cannot both shrink below their minimum.
    When one axis moves, push its dependants instead of letting a room vanish. */
-const MIN_STORE=1.00, MIN_BATH=1.80;
 function reconcile(moved){
   if(!storage) return;
   const west=()=> f('xmid','+')+MIN_STORE+AX.xst.t/2;
   const east=()=> f('xe2','-')-MIN_BATH-AX.xst.t/2;
   if(AX.xst.p < west()) AX.xst.p = +west().toFixed(3);
   if(AX.xst.p > east()) AX.xst.p = +east().toFixed(3);
-  if(AX.xst.p < west() && moved==='xmid')            // no room left for both
+  if(AX.xst.p < west() && moved==='xmid')
     AX.xmid.p = +(AX.xst.p - MIN_STORE - AX.xst.t/2 - AX.xmid.t/2).toFixed(3);
 }
+/* turn an absolute corner back into a room-relative anchor: snap to the
+   nearest edge if it is close, otherwise keep it free standing */
+function commitPos(it, x, y, room){
+  const {W,D}=dims(it);
+  const sw=Math.max(0.001, room.w-W), sd=Math.max(0.001, room.d-D);
+  x=Math.max(room.x0, Math.min(room.x1-W, x));
+  y=Math.max(room.y0, Math.min(room.y1-D, y));
+  const dn=y-room.y0, ds=room.y1-(y+D), dw=x-room.x0, de=room.x1-(x+W);
+  const m=Math.min(dn,ds,dw,de);
+  const cl=v=>Math.max(0,Math.min(1,v));
+  if(m<0.15){
+    if(m===dn){ it.snap='n'; it.along=cl((x-room.x0)/sw); }
+    else if(m===ds){ it.snap='s'; it.along=cl((x-room.x0)/sw); }
+    else if(m===dw){ it.snap='w'; it.along=cl((y-room.y0)/sd); }
+    else { it.snap='e'; it.along=cl((y-room.y0)/sd); }
+  } else {
+    it.snap=null; it.rx=cl((x-room.x0)/sw); it.ry=cl((y-room.y0)/sd);
+  }
+}
+let drag=null;
+function wire(svg){
+  svg.querySelectorAll('[data-ax]').forEach(n=>n.addEventListener('pointerdown',e=>{
+    drag={kind:'ax', id:n.dataset.ax, pre:snapshot()}; e.preventDefault(); }));
+  svg.querySelectorAll('[data-door]').forEach(n=>n.addEventListener('pointerdown',e=>{
+    const o=DOORS.find(d=>d.id===n.dataset.door); if(!o||!o.move) return;
+    drag={kind:'door', id:o.id, pre:snapshot()}; e.stopPropagation(); e.preventDefault(); }));
+  svg.querySelectorAll('[data-furn]').forEach(n=>n.addEventListener('pointerdown',e=>{
+    const uid=+n.dataset.furn, it=FURN.find(i=>i.uid===uid); if(!it) return;
+    sel=uid;
+    const p=ptOf(e), r=lastPlaced.find(q=>q.uid===uid);
+    drag={kind:'furn', id:uid, pre:snapshot(), ox:p.x-r.x0, oy:p.y-r.y0};
+    e.stopPropagation(); e.preventDefault(); update(); }));
+}
+function ptOf(e){
+  const svg=document.getElementById('plan'), p=svg.createSVGPoint();
+  p.x=e.clientX; p.y=e.clientY;
+  const q=p.matrixTransform(svg.getScreenCTM().inverse());
+  return {x:q.x/M, y:q.y/M};
+}
+(function(){
+  const stage=document.getElementById('stage');
+  stage.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    const p=ptOf(e);
+    if(drag.kind==='ax'){ setAxis(drag.id, AX[drag.id].d==='x'?p.x:p.y); update(); }
+    else if(drag.kind==='door'){
+      const o=DOORS.find(d=>d.id===drag.id), a=AX[o.ax];
+      const [lo,hi]=doorLimits(o);
+      o.pos=Math.round(Math.max(lo,Math.min(hi, a.d==='x'?p.y:p.x))*200)/200;
+      update();
+    } else {
+      const it=FURN.find(i=>i.uid===drag.id);
+      const room=geom().find(r=>r.id===it.room);
+      if(room) commitPos(it, p.x-drag.ox, p.y-drag.oy, room);
+      update();
+    }
+  });
+  const end=()=>{ if(drag){ push(drag.pre); drag=null; update(); } };
+  stage.addEventListener('pointerup',end);
+  stage.addEventListener('pointerleave',end);
+  stage.addEventListener('pointercancel',end);
+  addEventListener('keydown',e=>{
+    const typing=/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+    if(typing || sel==null) return;
+    if(e.key==='r'||e.key==='R'){ change(()=>{ const it=FURN.find(i=>i.uid===sel); if(it) it.rot=(it.rot+90)%360; }); }
+    if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); change(()=>{ FURN=FURN.filter(i=>i.uid!==sel); sel=null; }); }
+  });
+})();
 
 /* ============================================================
    UI
    ============================================================ */
-function fmt(n,d=2){ return n.toFixed(d).replace('.',','); }
+const fmt=(n,d=2)=>n.toFixed(d).replace('.',',');
+const keur=n=>'€'+(n/1000).toFixed(1)+'k';
+let lastPlaced=[];
 
 function update(){
-  draw();
-  const rooms=geom(), F=check(rooms), S=score(rooms,F);
-  const inside = rooms.filter(r=>r.id!=='balkon').reduce((s,r)=>s+r.area*(r.factor||1),0);
-  document.getElementById('hdr-area').textContent = fmt(inside,2)+' m²';
+  const rooms=geom();
+  lastPlaced=furnCheck(rooms, layout(rooms));
+  const F=check(rooms,lastPlaced), S=score(rooms,F,lastPlaced);
+  draw(rooms,lastPlaced);
 
-  // score
+  const inside=rooms.filter(r=>r.id!=='balkon').reduce((s,r)=>s+r.area*(r.factor||1),0);
+  document.getElementById('hdr-area').textContent=fmt(inside)+' m²';
+  document.getElementById('btn-undo').disabled=!HIST.undo.length;
+  document.getElementById('btn-redo').disabled=!HIST.redo.length;
+
   document.getElementById('score').textContent=S.total;
   const tag=document.getElementById('score-tag');
-  const t = S.total>=85?['很好','ok']:S.total>=70?['可用','warn']:['待改善','bad'];
-  tag.textContent=t[0];
-  tag.style.background=`var(--${t[1]}-bg)`; tag.style.color=`var(--${t[1]})`;
-  document.getElementById('score-bars').innerHTML = S.parts.map(([n,v,w])=>
+  const t = S.total>=85?['Good','ok']:S.total>=70?['Workable','warn']:['Needs work','bad'];
+  tag.textContent=t[0]; tag.style.background=`var(--${t[1]}-bg)`; tag.style.color=`var(--${t[1]})`;
+  document.getElementById('score-bars').innerHTML=S.parts.map(([n,v,w])=>
     `<div class="bar-row"><span>${n}</span><span class="bar-track"><span class="bar-fill" style="width:${(v*100).toFixed(0)}%"></span></span><span class="v num">${(v*100).toFixed(0)}</span></div>`).join('');
 
-  // controls
+  // --- adjustable dimensions ---
   const C=document.getElementById('controls');
-  const mk=(id)=>{
-    const a=AX[id]; const [lo,hi]=LIMIT[id]||[0,99];
-    const d=(a.p-BASE[id])*100;
-    const pill = a.kind==='bearing'?'<span class="pill p-bearing">承重</span>':a.wet?'<span class="pill p-wet">濕區</span>':'<span class="pill p-light">輕隔間</span>';
-    const dcls = Math.abs(d)<0.4?'zero':d>0?'up':'down';
+  const mk=id=>{
+    const a=AX[id], [lo,hi]=LIMIT[id]||[0,99], d=(a.p-BASE[id])*100;
+    const pill = a.kind==='bearing'?'<span class="pill p-bearing">bearing</span>'
+               : a.wet?'<span class="pill p-wet">wet</span>':'<span class="pill p-light">stud</span>';
+    const dc = Math.abs(d)<0.4?'zero':d>0?'up':'down';
     return `<div class="ctl">
       <div class="ctl-head"><span class="ctl-name">${a.name}</span>${pill}
         <span class="ctl-val num">${fmt(a.p)} m</span>
-        <span class="ctl-delta num ${dcls}">${d>0.4?'+':''}${Math.abs(d)<0.4?'±0':fmt(d,1)} cm</span></div>
+        <span class="ctl-delta num ${dc}">${d>0.4?'+':''}${Math.abs(d)<0.4?'±0':fmt(d,1)} cm</span></div>
       <input type="range" min="${lo}" max="${hi}" step="0.005" value="${a.p}" data-ax="${id}">
       <div class="ctl-note">${a.note||''}</div></div>`;
   };
-  C.innerHTML = ['xmid','y1','y2','xbw'].map(mk).join('')
-    + `<div class="ctl"><div class="ctl-head"><span class="ctl-name">切出儲藏室</span>
-        <span class="ctl-val"><button id="tg-store" class="${storage?'on':''}">${storage?'已啟用':'關閉'}</button></span></div>
-        <div class="ctl-note">從 11,5 m² 的衛浴西側切一間 Abstellraum ─ 這戶目前完全沒有收納空間</div></div>`
+  C.innerHTML=['xmid','y1','y2','xbw'].map(mk).join('')
+    + `<div class="ctl"><div class="ctl-head"><span class="ctl-name">Carve out a store</span>
+        <span class="ctl-val"><button id="tg-store" class="${storage?'on':''}">${storage?'On':'Off'}</button></span></div>
+        <div class="ctl-note">Takes an Abstellraum off the west end of the 11,5 m² bathroom — the flat has no storage at all as drawn</div></div>`
     + (storage?mk('xst'):'');
   C.querySelectorAll('input[type=range]').forEach(i=>{
-    i.addEventListener('input',e=>setAxis(e.target.dataset.ax, +e.target.value));
+    i.addEventListener('pointerdown',()=>{i._pre=snapshot();});
+    i.addEventListener('input',e=>{ setAxis(e.target.dataset.ax,+e.target.value); update(); });
+    i.addEventListener('change',e=>{ if(e.target._pre){ push(e.target._pre); e.target._pre=null; update(); } });
   });
-  document.getElementById('tg-store').onclick=()=>{storage=!storage; update();};
-  const tr=document.getElementById('tg-raw');
-  tr.textContent = rawMode? '純幾何面積' : '建築師 NGF';
-  tr.title = rawMode? '點一下切回圖面標註的 NGF' : '點一下改看未校正的幾何面積';
-  tr.onclick=()=>{rawMode=!rawMode; update();};
+  document.getElementById('tg-store').onclick=()=>change(()=>{storage=!storage;});
 
-  // areas
-  const B=document.getElementById('area-body');
-  B.innerHTML = rooms.map(r=>{
-    const now = (r.factor||1)*(rawMode? r.raw : r.area);
-    const base = r.ngf||0;
-    const d = base? now-base : null;
-    const cls = d===null?'zero':Math.abs(d)<0.05?'zero':d>0?'up':'down';
-    return `<tr><td>${r.name}</td><td class="num" style="color:var(--faint)">${base?fmt(base):'–'}</td>
+  // --- furniture ---
+  const FL=document.getElementById('flist');
+  FL.innerHTML = lastPlaced.length ? lastPlaced.map(it=>{
+    const bad=it.issues.some(i=>i.lv==='bad');
+    return `<div class="fitem ${it.uid===sel?'sel':''} ${bad?'err':''}" data-row="${it.uid}">
+      <div class="fitem-top"><span class="fitem-name">${it.n}</span>
+        <span class="fitem-room">${it.room.de.split('/')[0]}</span></div>
+      <div class="fitem-btns">
+        <button data-rot="${it.uid}" title="Rotate 90°">⟳</button>
+        <button data-del="${it.uid}" title="Remove">✕</button></div>
+      <div class="fitem-dims">
+        <input type="number" step="0.05" min="0.2" max="4" value="${it.w.toFixed(2)}" data-w="${it.uid}"> ×
+        <input type="number" step="0.05" min="0.2" max="4" value="${it.d.toFixed(2)}" data-d="${it.uid}"> m
+        ${it.snap?`<span style="color:var(--faint)">against ${({n:'north',s:'south',e:'east',w:'west'})[it.snap]}</span>`:''}</div>
+      ${it.issues.length?`<div class="fitem-err">${it.issues.map(i=>i.msg).join('<br>')}</div>`:''}
+    </div>`;
+  }).join('') : `<p class="note">Nothing placed. Add a piece below, then drag it on the plan.</p>`;
+  FL.querySelectorAll('[data-row]').forEach(n=>n.addEventListener('click',e=>{
+    if(e.target.closest('button')||e.target.tagName==='INPUT') return;
+    sel=+n.dataset.row; update(); }));
+  FL.querySelectorAll('[data-rot]').forEach(b=>b.onclick=()=>change(()=>{
+    const it=FURN.find(i=>i.uid===+b.dataset.rot); if(it) it.rot=(it.rot+90)%360; }));
+  FL.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>change(()=>{
+    FURN=FURN.filter(i=>i.uid!==+b.dataset.del); if(sel===+b.dataset.del) sel=null; }));
+  FL.querySelectorAll('[data-w],[data-d]').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const uid=+(e.target.dataset.w||e.target.dataset.d), key=e.target.dataset.w?'w':'d';
+      const v=Math.max(0.2,Math.min(4,+e.target.value||0.2));
+      change(()=>{ const it=FURN.find(i=>i.uid===uid); if(it) it[key]=v; });
+    });
+  });
+  const AR=document.getElementById('add-room'), AI=document.getElementById('add-item');
+  const curRoom=AR.value||'schlafen';
+  AR.innerHTML=FURN_ROOMS.map(id=>{const r=rooms.find(x=>x.id===id);
+    return `<option value="${id}" ${id===curRoom?'selected':''}>${r?r.de.split('/')[0]:id}</option>`;}).join('');
+  const kind=(rooms.find(r=>r.id===AR.value)||{}).kind;
+  const opts=Object.entries(CATALOG).filter(([,c])=>c.for.includes(kind));
+  const curItem=AI.value;
+  AI.innerHTML=opts.map(([k,c])=>`<option value="${k}" ${k===curItem?'selected':''}>${c.n}</option>`).join('');
+  AR.onchange=()=>update();
+  document.getElementById('btn-add').onclick=()=>change(()=>{
+    const c=CATALOG[AI.value]; if(!c) return;
+    FURN.push({uid:uidSeq++, key:AI.value, room:AR.value, n:c.n, cat:c.cat, w:c.w, d:c.d,
+               cl:{...c.cl}, tall:c.tall, rot:0, snap:null, along:.5, rx:.5, ry:.5});
+    sel=uidSeq-1;
+  });
+  const tc=document.getElementById('tg-clear'); tc.className=showClear?'on':''; tc.onclick=()=>{showClear=!showClear; update();};
+  const tg=document.getElementById('tg-ghost'); tg.className=showGhost?'on':''; tg.onclick=()=>{showGhost=!showGhost; update();};
+  document.getElementById('tg-wipe').onclick=()=>change(()=>{FURN=[]; sel=null;});
+
+  // --- doors ---
+  document.getElementById('doorlist').innerHTML=DOORS.filter(o=>o.move&&o.kind!=='open').map(o=>
+    `<div class="cost-line"><span>${o.name}</span>
+      <span><span class="num">${fmt(o.w)} m</span>
+      <button data-hinge="${o.id}" class="ghost" style="padding:2px 6px" title="Hinge and swing">${o.hinge==='a'?'◟':'◞'}${o.swing==='+'?'▸':'◂'}</button></span></div>`
+  ).join('') + `<p class="note" style="margin-top:6px">Drag the round handle on a door to slide it along its wall. The swing is treated as an obstacle for furniture.</p>`;
+  document.querySelectorAll('[data-hinge]').forEach(b=>b.onclick=()=>change(()=>{
+    const o=DOORS.find(d=>d.id===b.dataset.hinge);
+    if(o.hinge==='a'&&o.swing==='-') {o.swing='+';}
+    else if(o.hinge==='a'&&o.swing==='+'){o.hinge='b'; o.swing='-';}
+    else if(o.hinge==='b'&&o.swing==='-'){o.swing='+';}
+    else {o.hinge='a'; o.swing='-';}
+  }));
+
+  // --- areas ---
+  document.getElementById('area-body').innerHTML=rooms.map(r=>{
+    const now=(r.factor||1)*(rawMode? r.raw : r.area), base=r.ngf||0;
+    const d=base? now-base : null;
+    const cls=d===null?'zero':Math.abs(d)<0.05?'zero':d>0?'up':'down';
+    return `<tr><td>${r.de}</td><td class="num" style="color:var(--faint)">${base?fmt(base):'–'}</td>
       <td class="num">${fmt(now)}</td>
-      <td class="num ${cls}">${d===null?'新增':(d>0?'+':'')+fmt(d)}</td></tr>`;
+      <td class="num ${cls}">${d===null?'new':(d>0?'+':'')+fmt(d)}</td></tr>`;
   }).join('');
-  const sumNow = rooms.reduce((s,r)=>s+(r.factor||1)*(rawMode? r.raw : r.area),0);
-  const sumBase = rooms.reduce((s,r)=>s+(r.ngf||0),0);
-  document.getElementById('area-foot').innerHTML =
-    `<tr><td>合計（含陽台 ½）</td><td class="num" style="color:var(--faint)">${fmt(sumBase)}</td>
+  const sumNow=rooms.reduce((s,r)=>s+(r.factor||1)*(rawMode? r.raw : r.area),0);
+  const sumBase=rooms.reduce((s,r)=>s+(r.ngf||0),0);
+  document.getElementById('area-foot').innerHTML=
+    `<tr><td>Total, balcony at ½</td><td class="num" style="color:var(--faint)">${fmt(sumBase)}</td>
      <td class="num">${fmt(sumNow)}</td><td class="num ${sumNow-sumBase>0?'up':'down'}">${(sumNow-sumBase>0?'+':'')+fmt(sumNow-sumBase)}</td></tr>`;
 
-  // findings
   document.getElementById('findings').innerHTML = F.length? F.map(x=>
     `<div class="finding f-${x.lv}"><span class="f-dot"></span><span>
       <span class="f-room">${x.room}</span> · ${x.msg}${x.fix?`<br><span class="f-fix">${x.fix}</span>`:''}</span></div>`).join('')
-    : `<div class="finding f-ok"><span class="f-dot"></span><span>沒有違反的規則</span></div>`;
+    : `<div class="finding f-ok"><span class="f-dot"></span><span>Nothing fails</span></div>`;
 
-  // cost
   const L=costs(), tot=L.reduce((s,c)=>s+c.eur,0);
-  document.getElementById('cost').textContent = tot? '€'+(tot/1000).toFixed(1)+'k' : '€0';
+  document.getElementById('cost').textContent = tot? keur(tot) : '€0';
   document.getElementById('cost-lines').innerHTML = L.length? L.map(c=>
-    `<div class="cost-line"><span>${c.label}</span><span class="num">€${(c.eur/1000).toFixed(1)}k</span></div>`).join('')
-    : `<div class="cost-line"><span>未改動任何牆</span><span class="num">€0</span></div>`;
+    `<div class="cost-line"><span>${c.label}</span><span class="num">${keur(c.eur)}</span></div>`).join('')
+    : `<div class="cost-line"><span>No wall moved</span><span class="num">€0</span></div>`;
+
+  const tr=document.getElementById('tg-raw');
+  tr.textContent = rawMode? 'Raw geometry' : 'Sheet NGF';
+  tr.title = rawMode? 'Back to the areas printed on the sheet' : 'Show the uncalibrated geometry';
+  tr.onclick=()=>{rawMode=!rawMode; update();};
 }
 
 /* ---- presets ---- */
 const PRESETS=[
-  {n:'A 原案', s:'建築師 2026-08-03 版', set:{}, store:false},
-  {n:'B 臥室優先', s:'中牆東移 45 cm', set:{xmid:4.345}, store:false},
-  {n:'C 收納版', s:'切儲藏室 + 玄關縮小', set:{y2:10.55}, store:true},
+  {n:'A As drawn',      s:"the architect's 03.08.2026 sheet", set:{}, store:false},
+  {n:'B Bedrooms first',s:'bearing wall 45 cm east',          set:{xmid:4.3425}, store:false},
+  {n:'C With storage',  s:'store carved out, hall trimmed',   set:{y2:10.5525}, store:true},
   // Neither wall can pass through the chimney (x 3,285-3,793 / y 8,704-9,263):
   // the bearing wall is stuck, and the partition has to clear it in one jump.
-  {n:'D 起居優先', s:'分界南移 72 cm，越過煙囪', set:{y1:9.360}, store:false},
+  {n:'D Living first',  s:'divider 72 cm south, past the flue',set:{y1:9.360}, store:false},
 ];
 function applyPreset(p){
-  for(const k in BASE) AX[k].p=BASE[k];
-  for(const k in p.set) AX[k].p=p.set[k];
-  storage=p.store; update();
+  change(()=>{
+    for(const k in BASE) AX[k].p=BASE[k];
+    for(const k in p.set) AX[k].p=p.set[k];
+    storage=p.store;
+  });
 }
-document.getElementById('presets').innerHTML = PRESETS.map((p,i)=>
+document.getElementById('presets').innerHTML=PRESETS.map((p,i)=>
   `<button class="preset" data-i="${i}"><b>${p.n}</b><span>${p.s}</span></button>`).join('');
 document.getElementById('presets').onclick=e=>{
   const b=e.target.closest('[data-i]'); if(b) applyPreset(PRESETS[+b.dataset.i]);
 };
-document.getElementById('btn-reset').onclick=()=>applyPreset(PRESETS[0]);
+document.getElementById('btn-reset').onclick=()=>change(()=>{
+  for(const k in BASE) AX[k].p=BASE[k]; storage=false; seed(); sel=null;
+});
+document.getElementById('btn-undo').onclick=undo;
+document.getElementById('btn-redo').onclick=redo;
 document.getElementById('btn-export').onclick=()=>{
+  const rooms=geom();
   const data={axes:Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])), storage,
-              rooms:geom().map(r=>({id:r.id,de:r.de,w:+r.w.toFixed(3),d:+r.d.toFixed(3),area:+r.area.toFixed(2)}))};
+    rooms:rooms.map(r=>({id:r.id, de:r.de, w:+r.w.toFixed(3), d:+r.d.toFixed(3),
+                         ngf:+((r.factor||1)*r.area).toFixed(2), raw:+((r.factor||1)*r.raw).toFixed(2)})),
+    doors:DOORS.filter(o=>o.move&&o.kind!=='open').map(o=>({id:o.id,ax:o.ax,pos:+o.pos.toFixed(3),w:o.w,hinge:o.hinge,swing:o.swing})),
+    furniture:lastPlaced.map(i=>({name:i.n, room:i.room.id, w:i.w, d:i.d, rot:i.rot,
+                                  x:+i.x0.toFixed(3), y:+i.y0.toFixed(3), issues:i.issues.map(s=>s.msg)}))};
   navigator.clipboard?.writeText(JSON.stringify(data,null,2));
-  const b=document.getElementById('btn-export'); b.textContent='已複製到剪貼簿';
-  setTimeout(()=>b.textContent='匯出 JSON',1600);
+  const b=document.getElementById('btn-export'); b.textContent='Copied';
+  setTimeout(()=>b.textContent='Copy JSON',1600);
 };
 
-/* ---- saved variants ---- */
+/* ---- saved options ---- */
 const KEY='og-varianten';
 const load=()=>{ try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return []} };
 function renderSaved(){
   const V=load();
   document.getElementById('saved').innerHTML = V.length? V.map((v,i)=>
     `<div class="cost-line"><button class="ghost" data-load="${i}" style="padding:2px 4px">${v.name}</button>
-     <span class="num">${v.score} 分 · €${(v.cost/1000).toFixed(1)}k</span></div>`).join('')
-    : `<div class="cost-line"><span>還沒有存檔</span></div>`;
+     <span class="num">${v.score} · ${keur(v.cost)}</span></div>`).join('')
+    : `<div class="cost-line"><span>Nothing saved yet</span></div>`;
   document.getElementById('saved').querySelectorAll('[data-load]').forEach(b=>{
-    b.onclick=()=>{ const v=load()[+b.dataset.load];
-      for(const k in v.axes) AX[k].p=v.axes[k]; storage=v.storage; update(); };
+    b.onclick=()=>change(()=>{
+      const v=load()[+b.dataset.load];
+      for(const k in v.axes) if(AX[k]) AX[k].p=v.axes[k];
+      storage=v.storage;
+      if(v.doors) DOORS=v.doors;                       // options saved before doors moved
+      if(v.furn){ FURN=v.furn; uidSeq=Math.max(1,...FURN.map(i=>i.uid||0))+1; }
+      sel=null;
+    });
   });
 }
 document.getElementById('btn-save').onclick=()=>{
-  const rooms=geom(), F=check(rooms), S=score(rooms,F);
+  const rooms=geom(), placed=furnCheck(rooms,layout(rooms));
   const V=load();
-  V.push({name:'方案 '+String.fromCharCode(69+V.length), score:S.total,
+  V.push({name:'Option '+String.fromCharCode(69+V.length),
+          score:score(rooms,check(rooms,placed),placed).total,
           cost:costs().reduce((s,c)=>s+c.eur,0),
-          axes:Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])), storage});
+          axes:Object.fromEntries(Object.entries(AX).map(([k,a])=>[k,a.p])),
+          storage, doors:DOORS, furn:FURN});
   localStorage.setItem(KEY,JSON.stringify(V)); renderSaved();
 };
 document.getElementById('btn-clear').onclick=()=>{ localStorage.removeItem(KEY); renderSaved(); };

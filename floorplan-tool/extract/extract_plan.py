@@ -15,6 +15,7 @@ metres, origin at the north-west corner of the extension.
 
     pip install pymupdf
     python3 extract_plan.py Obergeschoss.pdf > walls.json
+    python3 extract_plan.py Obergeschoss.pdf --furniture > furniture.path
 
 Verification (run with --check): every wall thickness must land on one of the
 thicknesses annotated in the drawing (24 / 17.5 / 11.5 cm), and the derived
@@ -28,6 +29,9 @@ import pymupdf
 
 SCALE = 0.0352778          # metres per PDF point at 1:100 on A3 (25.4/72/1000*100)
 BUILDING = (350, 700, 200, 620)   # page-space window that excludes legend + title block
+INTERIOR = (0.24, 3.48, 9.46, 13.81)      # the flat, in metres from the NW corner of the extension
+FACES_X = [0.24, 3.806, 3.979, 7.959, 8.20, 9.457]
+FACES_Y = [3.488, 8.577, 8.691, 10.791, 10.905, 13.805]
 # NOTE: do not add a size filter here. An earlier version dropped rects smaller
 # than 7 x 12 pt as "dimension arrow heads" and silently deleted the 24 x 22,9 cm
 # door jamb beside the flat's entrance, which put the whole south-east corner of
@@ -101,9 +105,67 @@ def check(ws):
     return ok
 
 
+def furniture(path):
+    """The architect's own furniture symbols, as one SVG path in centimetres.
+
+    They are drawn as loose black line segments rather than grouped objects, so
+    they cannot be recovered as furniture *objects* - only as a reference
+    underlay. Wall outlines and door swings are dropped: the tool draws its own.
+    """
+    page = pymupdf.open(path)[0]
+    rot = page.rotation_matrix
+    ox, oy = 372.69, 211.56
+
+    def to(q):
+        p = q * rot
+        return ((p.x - ox) * SCALE, (p.y - oy) * SCALE)
+
+    def inside(x, y):
+        return (INTERIOR[0] - .02 < x < INTERIOR[2] + .02
+                and INTERIOR[1] - .02 < y < INTERIOR[3] + .02)
+
+    def on_a_wall(a, b):
+        if abs(a[0] - b[0]) < .01 and any(abs(a[0] - v) < .025 for v in FACES_X):
+            return True
+        return abs(a[1] - b[1]) < .01 and any(abs(a[1] - v) < .025 for v in FACES_Y)
+
+    n = lambda v: round(v * 100, 1)
+    out = []
+    for item in page.get_drawings():
+        col = item.get("color")
+        if col is None or max(col) > 0.15:          # furniture is drawn in black
+            continue
+        if (item.get("width") or 0) > 0.6:          # heavy lines are walls and frames
+            continue
+        for seg in item["items"]:
+            if seg[0] == "l":
+                a, b = to(seg[1]), to(seg[2])
+                if inside(*a) and inside(*b) and not on_a_wall(a, b):
+                    out.append(f"M{n(a[0])} {n(a[1])}L{n(b[0])} {n(b[1])}")
+            elif seg[0] == "c":
+                q = [to(seg[i]) for i in (1, 2, 3, 4)]
+                if not all(inside(*t) for t in q):
+                    continue
+                span = max(max(t[i] for t in q) - min(t[i] for t in q) for i in (0, 1))
+                if span > 0.5:                      # door swing arcs: the tool draws its own
+                    continue
+                out.append("M{} {}C{} {} {} {} {} {}".format(*[n(v) for t in q for v in t]))
+            elif seg[0] == "re":
+                r = seg[1] * rot
+                a = ((r.x0 - ox) * SCALE, (r.y0 - oy) * SCALE)
+                b = ((r.x1 - ox) * SCALE, (r.y1 - oy) * SCALE)
+                if inside(*a) and inside(*b):
+                    out.append(f"M{n(a[0])} {n(a[1])}H{n(b[0])}V{n(b[1])}H{n(a[0])}Z")
+    return "".join(out)
+
+
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
-    ws = walls(args[0] if args else "Obergeschoss.pdf")
+    src = args[0] if args else "Obergeschoss.pdf"
+    if "--furniture" in sys.argv:
+        sys.stdout.write(furniture(src))
+        sys.exit(0)
+    ws = walls(src)
     if "--check" in sys.argv:
         sys.exit(0 if check(ws) else 1)
     json.dump({"scale_m_per_pt": SCALE, "walls": ws}, sys.stdout, indent=1)
